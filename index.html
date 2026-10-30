@@ -1332,27 +1332,15 @@ window.addEventListener('offline',()=>{
 
  if(data?.session){
   await handleAuth(data.session);
- }else{
+}else{
   if(getInvitationToken()){
    await handleAuth(null);
    return;
   }
 
-  status('جارٍ استعادة تسجيل الدخول…');
-
-  const {error:loginError}=await client.auth.signInWithOAuth({
-   provider:'google',
-   options:{
-    redirectTo:location.origin+location.pathname+location.search
-   }
-  });
-
-  if(loginError){
-   console.error(loginError);
-   status('تعذّر استعادة الدخول. يمكنك تسجيل الدخول يدوياً.');
-   show('loginPanel',true);
-  }
- }
+  status('يمكنك تسجيل الدخول للمتابعة');
+  show('loginPanel',true);
+}
 })();
 })();
 window.addEventListener('load', () => {
