@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
@@ -100,7 +99,7 @@ hr{border:0;border-top:1px solid var(--line);margin:20px 0}
  <div class="status" id="status">جارٍ الاتصال…</div>
 </header>
 
-<section class="panel" id="loginPanel">
+<section class="panel hidden" id="loginPanel">
  <h2>أهلاً بك في مقاضي البيت</h2>
  <p class="small">سجّلي الدخول بحساب Google للبدء أو للانضمام إلى عائلتك.</p>
  <button class="primary" id="loginBtn">الدخول باستخدام Google</button>
@@ -158,6 +157,12 @@ hr{border:0;border-top:1px solid var(--line);margin:20px 0}
  <hr>
  <h2>أعضاء العائلة</h2>
  <div id="membersList"><p class="small">جارٍ تحميل الأعضاء…</p></div>
+
+ <hr>
+ <h2>تغيير اسمي</h2>
+ <p class="small">يمكنك تغيير الاسم الذي يظهر لأفراد العائلة.</p>
+ <input id="myDisplayNameInput" maxlength="60" placeholder="اسمك الجديد">
+ <button class="secondary" id="changeMyNameBtn">حفظ اسمي</button>
 
  <hr>
  <h2>تغيير اسم العائلة</h2>
@@ -311,6 +316,46 @@ async function saveDisplayName(){
  show('profilePanel',false);
  toast('تم حفظ اسمك بنجاح');
  await loadFamilies();
+}
+
+/* تغيير اسم العضو الحالي */
+async function changeMyDisplayName(){
+ const name=$('myDisplayNameInput').value.trim();
+
+ if(!name){
+  toast('اكتبي اسمك أولاً');
+  return;
+ }
+
+ if(name.length>60){
+  toast('الاسم طويل جداً');
+  return;
+ }
+
+ $('changeMyNameBtn').disabled=true;
+
+ try{
+  const {error}=await client.from('member_profiles').upsert({
+   user_id:user.id,
+   display_name:name,
+   updated_at:new Date().toISOString()
+  });
+
+  if(error){
+   toast('تعذّر تغيير الاسم: '+error.message);
+   return;
+  }
+
+  $('myDisplayNameInput').value='';
+  toast('تم تغيير اسمك بنجاح');
+  await loadMembers();
+
+ }catch(error){
+  console.error(error);
+  toast('حدث خطأ أثناء تغيير الاسم');
+ }finally{
+  $('changeMyNameBtn').disabled=false;
+ }
 }
 
 function openDB(){
@@ -958,6 +1003,7 @@ $('renameFamilyBtn').onclick=renameFamily;
 $('deleteFamilyBtn').onclick=deleteFamily;
 $('leaveFamilyBtn').onclick=leaveFamily;
 $('saveDisplayNameBtn').onclick=saveDisplayName;
+$('changeMyNameBtn').onclick=changeMyDisplayName;
 
 $('openSettingsBtn').onclick=openSettings;
 $('backToShoppingBtn').onclick=backToShopping;
