@@ -58,10 +58,15 @@ hr{border:0;border-top:1px solid var(--line);margin:20px 0}
 .member{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--line)}
 .member:last-child{border-bottom:0}
 .member-info{flex:1;min-width:0;overflow-wrap:anywhere}
+.member-name{font-weight:bold}
 .member-role{font-size:12px;color:var(--muted)}
 .remove-member{border:1px solid #e7caca;background:#fff0f0;color:#a12e2e;border-radius:9px;padding:6px 10px}
 .family-current{font-weight:bold;color:var(--green);margin-bottom:8px}
 .swipe-hint{font-size:12px;color:var(--muted);text-align:center;margin:8px 0}
+.top-actions{display:flex;gap:8px;align-items:center}
+.top-actions>*{flex:1}
+.settings-button{width:48px;height:46px;border:1px solid var(--line);border-radius:12px;background:white;color:var(--green);font-size:23px}
+.section-label{font-weight:bold;margin:12px 0 4px}
 @media(max-width:480px){
  .app{padding:14px 10px}
  .panel{padding:13px}
@@ -88,6 +93,15 @@ hr{border:0;border-top:1px solid var(--line);margin:20px 0}
  <button class="primary" id="loginBtn">الدخول باستخدام Google</button>
 </section>
 
+<!-- كتابة الاسم بعد تسجيل الدخول -->
+<section class="panel hidden" id="profilePanel">
+ <h2>أهلاً بك في مقاضي البيت 🌿</h2>
+ <p class="small">ما الاسم الذي تريدين أن يظهر لأفراد العائلة؟</p>
+ <input id="displayNameInput" maxlength="60" placeholder="اكتبي اسمك" autocomplete="name">
+ <button class="primary" id="saveDisplayNameBtn">حفظ الاسم والمتابعة</button>
+</section>
+
+<!-- اختيار العائلة وإنشاؤها أو الانضمام إليها -->
 <section class="panel hidden" id="familyPanel">
  <h2>العائلة</h2>
  <div id="familyChoices"></div>
@@ -101,33 +115,73 @@ hr{border:0;border-top:1px solid var(--line);margin:20px 0}
  <button class="secondary" id="logoutBtn">تسجيل الخروج</button>
 </section>
 
+<!-- شريط العائلة -->
 <section class="panel hidden" id="familyToolbar">
- <div class="family-current" id="currentFamilyName"></div>
- <label class="small" for="familySelect">التبديل بين العائلات</label>
- <select id="familySelect"></select>
- <button class="secondary" id="showFamiliesBtn">إدارة العائلات / إنشاء عائلة</button>
+ <div class="top-actions">
+  <div>
+   <div class="family-current" id="currentFamilyName"></div>
+   <label class="small" for="familySelect">العائلة الحالية</label>
+   <select id="familySelect"></select>
+  </div>
+  <button class="settings-button" id="openSettingsBtn" aria-label="الإعدادات" title="إعدادات العائلة">⚙</button>
+ </div>
 </section>
 
-<section class="panel hidden" id="invitePanel">
- <h2>دعوة أفراد العائلة</h2>
- <p class="small">أنشئي رابطاً خاصاً وشاركيه عبر واتساب. الرابط صالح لمدة 7 أيام.</p>
- <input id="inviteEmail" type="email" placeholder="البريد الإلكتروني (اختياري)">
- <button class="primary" id="makeInviteBtn">إنشاء رابط الدعوة</button>
- <input id="inviteLink" readonly placeholder="سيظهر رابط الدعوة هنا">
- <button class="secondary" id="shareInviteBtn">مشاركة الرابط عبر واتساب</button>
+<!-- صفحة إعدادات وإدارة العائلة -->
+<section class="panel hidden" id="settingsPanel">
+ <div class="row">
+  <h2>إعدادات العائلة</h2>
+  <button class="secondary" id="backToShoppingBtn">العودة للقائمة</button>
+ </div>
+
+ <div class="section-label">العائلة</div>
+ <div class="family-current" id="settingsFamilyName"></div>
+
+ <div id="familySwitchArea">
+  <label class="small" for="settingsFamilySelect">التبديل بين العائلات</label>
+  <select id="settingsFamilySelect"></select>
+ </div>
 
  <hr>
  <h2>أعضاء العائلة</h2>
  <div id="membersList"><p class="small">جارٍ تحميل الأعضاء…</p></div>
 
  <hr>
- <h2>إدارة العائلة</h2>
- <p class="small">هذه الخيارات متاحة لمالك العائلة فقط.</p>
+ <h2>تغيير اسم العائلة</h2>
+ <p class="small">يمكن لجميع أفراد العائلة تغيير اسمها.</p>
  <input id="renameFamilyName" maxlength="100" placeholder="الاسم الجديد للعائلة">
- <button class="secondary" id="renameFamilyBtn">تغيير اسم العائلة</button>
- <button class="danger" id="deleteFamilyBtn">حذف العائلة نهائياً</button>
+ <button class="secondary" id="renameFamilyBtn">حفظ اسم العائلة</button>
+
+ <div id="ownerInviteArea">
+  <hr>
+  <h2>دعوة أفراد العائلة</h2>
+  <p class="small">أنشئي رابطاً خاصاً وشاركيه عبر واتساب. الرابط صالح لمدة 7 أيام.</p>
+  <input id="inviteEmail" type="email" placeholder="البريد الإلكتروني (اختياري)">
+  <button class="primary" id="makeInviteBtn">إنشاء رابط الدعوة</button>
+  <input id="inviteLink" readonly placeholder="سيظهر رابط الدعوة هنا">
+  <button class="secondary" id="shareInviteBtn">مشاركة الرابط عبر واتساب</button>
+ </div>
+
+ <div id="ownerDeleteArea">
+  <hr>
+  <h2>حذف العائلة</h2>
+  <p class="small">حذف العائلة سيؤدي إلى حذف قائمة المقاضي والأعضاء والدعوات.</p>
+  <button class="danger" id="deleteFamilyBtn">حذف العائلة نهائياً</button>
+ </div>
+
+ <div id="memberLeaveArea">
+  <hr>
+  <h2>مغادرة العائلة</h2>
+  <p class="small">يمكنك مغادرة العائلة، ولن تتمكن من رؤية قائمتها بعد ذلك.</p>
+  <button class="danger" id="leaveFamilyBtn">مغادرة العائلة</button>
+ </div>
+
+ <hr>
+ <button class="secondary" id="showFamiliesBtn">اختيار عائلة أخرى / إنشاء عائلة</button>
+ <button class="secondary" id="logoutSettingsBtn">تسجيل الخروج</button>
 </section>
 
+<!-- قائمة المقاضي -->
 <div id="shoppingArea" class="hidden">
  <section class="panel">
   <h2>إضافة غرض جديد</h2>
@@ -152,7 +206,7 @@ hr{border:0;border-top:1px solid var(--line);margin:20px 0}
   <span class="small" id="listSubtitle"></span>
  </div>
  <div class="items" id="items" aria-live="polite"></div>
- <p class="swipe-hint">اضغطي ✓ أو اسحبي الغرض إلى اليسار لنقله إلى «تم شراؤه».</p>
+ <p class="swipe-hint">اضغطي ✓ أو اسحبي الغرض إلى اليمين لنقله إلى «تم شراؤه».</p>
 </div>
 </main>
 
@@ -187,6 +241,64 @@ function toast(message){
 function status(message){$('status').textContent=message}
 function show(id,yes=true){$(id).classList.toggle('hidden',!yes)}
 function isOwner(){return !!family&&family.role==='owner'}
+
+function showOnlyProfile(){
+ show('loginPanel',false);
+ show('profilePanel',true);
+ show('familyPanel',false);
+ show('familyToolbar',false);
+ show('settingsPanel',false);
+ show('shoppingArea',false);
+ status('يرجى كتابة اسمك للمتابعة');
+}
+
+async function checkMemberProfile(){
+ const {data,error}=await client.from('member_profiles')
+  .select('display_name')
+  .eq('user_id',user.id)
+  .maybeSingle();
+
+ if(error){
+  toast('تعذّر التحقق من الاسم: '+error.message);
+  status('تعذّر تحميل بيانات الاسم');
+  return false;
+ }
+
+ if(data?.display_name){
+  show('profilePanel',false);
+  return true;
+ }
+
+ showOnlyProfile();
+ return false;
+}
+
+async function saveDisplayName(){
+ const name=$('displayNameInput').value.trim();
+
+ if(!name){toast('اكتبي اسمك أولاً');return}
+ if(name.length>60){toast('الاسم طويل جداً');return}
+
+ $('saveDisplayNameBtn').disabled=true;
+
+ const {error}=await client.from('member_profiles').upsert({
+  user_id:user.id,
+  display_name:name,
+  updated_at:new Date().toISOString()
+ });
+
+ $('saveDisplayNameBtn').disabled=false;
+
+ if(error){
+  toast('تعذّر حفظ الاسم: '+error.message);
+  return;
+ }
+
+ $('displayNameInput').value='';
+ show('profilePanel',false);
+ toast('تم حفظ اسمك بنجاح');
+ await loadFamilies();
+}
 
 function openDB(){
  return new Promise((resolve,reject)=>{
@@ -330,7 +442,6 @@ async function addItem(name,cat){
 
 async function setDone(item,done){
  if(!family)return;
- const previousDone=item.done,previousAt=item.at;
  item.done=done;
  item.at=done?new Date().toISOString():null;
  render();
@@ -441,7 +552,7 @@ function render(){
  });
 }
 
-/* السحب لليسار على الشاشة لنقل الغرض إلى تم شراؤه */
+/* السحب إلى اليمين لإتمام الشراء، وإلى اليسار للتراجع */
 function addSwipe(element,item){
  let startX=0,startY=0,tracking=false;
  element.addEventListener('touchstart',e=>{
@@ -458,10 +569,21 @@ function addSwipe(element,item){
   const dx=touch.clientX-startX;
   const dy=touch.clientY-startY;
   if(Math.abs(dx)>65&&Math.abs(dx)>Math.abs(dy)*1.3){
-   if(dx<0&&!item.done)setDone(item,true);
-   else if(dx>0&&item.done)setDone(item,false);
+   if(dx>0&&!item.done)setDone(item,true);
+   else if(dx<0&&item.done)setDone(item,false);
   }
  },{passive:true});
+}
+
+function showFamilyChoices(){
+ $('familyChoices').replaceChildren();
+ families.forEach(f=>{
+  const b=document.createElement('button');
+  b.className='secondary';
+  b.textContent='🏠 '+f.name+(f.role==='owner'?' · مالك':'');
+  b.onclick=()=>selectFamily(f);
+  $('familyChoices').append(b);
+ });
 }
 
 async function loadFamilies(preferredId=null){
@@ -483,8 +605,8 @@ async function loadFamilies(preferredId=null){
   show('familyPanel');
   show('familyActions');
   show('familyToolbar',false);
+  show('settingsPanel',false);
   show('shoppingArea',false);
-  show('invitePanel',false);
   $('familyChoices').textContent='ليس لديك عائلة بعد.';
   return;
  }
@@ -500,17 +622,29 @@ async function loadFamilies(preferredId=null){
   show('familyPanel');
   show('familyActions',false);
   show('familyToolbar',false);
+  show('settingsPanel',false);
   show('shoppingArea',false);
-  show('invitePanel',false);
-  $('familyChoices').replaceChildren();
-  families.forEach(f=>{
-   const b=document.createElement('button');
-   b.className='secondary';
-   b.textContent='🏠 '+f.name+(f.role==='owner'?' · مالك':'');
-   b.onclick=()=>selectFamily(f);
-   $('familyChoices').append(b);
-  });
+  showFamilyChoices();
  }
+}
+
+function populateFamilySelects(){
+ const main=$('familySelect');
+ const settings=$('settingsFamilySelect');
+ main.replaceChildren();
+ settings.replaceChildren();
+
+ families.forEach(f=>{
+  [main,settings].forEach(select=>{
+   const option=document.createElement('option');
+   option.value=f.id;
+   option.textContent=f.name+(f.role==='owner'?' · مالك':'');
+   option.selected=f.id===family.id;
+   select.append(option);
+  });
+ });
+
+ show('familySwitchArea',families.length>1);
 }
 
 async function selectFamily(f){
@@ -528,30 +662,21 @@ async function selectFamily(f){
 
   show('familyPanel',false);
   show('familyToolbar');
+  show('settingsPanel',false);
   show('shoppingArea');
-  show('invitePanel',true);
-
   $('currentFamilyName').textContent='🏠 '+family.name+
    (isOwner()?' · مالك العائلة':' · عضو');
 
-  const select=$('familySelect');
-  select.replaceChildren();
-  families.forEach(x=>{
-   const option=document.createElement('option');
-   option.value=x.id;
-   option.textContent=x.name+(x.role==='owner'?' · مالك':'');
-   option.selected=x.id===family.id;
-   select.append(option);
-  });
+  $('settingsFamilyName').textContent=family.name;
+  populateFamilySelects();
 
-  show('renameFamilyName',isOwner());
-  show('renameFamilyBtn',isOwner());
-  show('deleteFamilyBtn',isOwner());
-  show('inviteEmail',isOwner());
-  show('makeInviteBtn',isOwner());
-  show('shareInviteBtn',isOwner());
+  show('ownerInviteArea',isOwner());
+  show('ownerDeleteArea',isOwner());
+  show('memberLeaveArea',!isOwner());
 
   $('inviteLink').value='';
+  $('renameFamilyName').value='';
+
   await loadItems();
   await loadMembers();
 
@@ -566,6 +691,18 @@ async function selectFamily(f){
  }finally{
   switching=false;
  }
+}
+
+function openSettings(){
+ if(!family)return;
+ show('shoppingArea',false);
+ show('settingsPanel');
+ $('settingsFamilyName').textContent=family.name;
+}
+
+function backToShopping(){
+ show('settingsPanel',false);
+ show('shoppingArea');
 }
 
 async function createFamily(){
@@ -653,14 +790,15 @@ async function loadMembers(){
   const info=document.createElement('div');
   info.className='member-info';
 
-  const email=document.createElement('div');
-  email.textContent=member.email||'عضو في العائلة';
+  const name=document.createElement('div');
+  name.className='member-name';
+  name.textContent=member.display_name||'عضو';
 
   const role=document.createElement('div');
   role.className='member-role';
   role.textContent=member.role==='owner'?'مالك العائلة':'عضو';
 
-  info.append(email,role);
+  info.append(name,role);
   row.append(info);
 
   if(isOwner()&&member.role!=='owner'){
@@ -694,7 +832,7 @@ async function removeMember(member){
 }
 
 async function renameFamily(){
- if(!family||!isOwner())return;
+ if(!family)return;
  const name=$('renameFamilyName').value.trim();
  if(!name){toast('اكتبي الاسم الجديد أولاً');return}
 
@@ -706,10 +844,12 @@ async function renameFamily(){
  family.name=name;
  const f=families.find(x=>x.id===family.id);
  if(f)f.name=name;
- $('currentFamilyName').textContent='🏠 '+name+' · مالك العائلة';
+
+ $('currentFamilyName').textContent='🏠 '+name+
+  (isOwner()?' · مالك العائلة':' · عضو');
+ $('settingsFamilyName').textContent=name;
+ populateFamilySelects();
  $('renameFamilyName').value='';
- const option=$('familySelect').selectedOptions[0];
- if(option)option.textContent=name+' · مالك';
  toast('تم تغيير اسم العائلة');
 }
 
@@ -731,6 +871,27 @@ async function deleteFamily(){
  await loadFamilies();
 }
 
+async function leaveFamily(){
+ if(!family||isOwner())return;
+
+ const confirmed=confirm(
+  'هل تريدين مغادرة هذه العائلة؟ لن تتمكني من رؤية قائمتها بعد المغادرة.'
+ );
+ if(!confirmed)return;
+
+ const id=family.id;
+ const {error}=await client.rpc('leave_family',{
+  target_family_id:id
+ });
+ if(error){toast('تعذّرت مغادرة العائلة: '+error.message);return}
+
+ if(channel){await client.removeChannel(channel);channel=null}
+ family=null;
+ items=[];
+ toast('غادرتِ العائلة');
+ await loadFamilies();
+}
+
 async function handleAuth(session){
  user=session?.user||null;
  show('loginPanel',!user);
@@ -738,21 +899,27 @@ async function handleAuth(session){
  if(!user){
   if(channel){await client.removeChannel(channel);channel=null}
   family=null;families=[];items=[];
+  show('profilePanel',false);
   show('familyPanel',false);
   show('familyToolbar',false);
+  show('settingsPanel',false);
   show('shoppingArea',false);
-  show('invitePanel',false);
   status('سجّلي الدخول للبدء');
   return;
  }
 
  status('تم تسجيل الدخول');
+
+ const profileOK=await checkMemberProfile();
+ if(!profileOK)return;
+
  const token=new URLSearchParams(location.search).get('invite');
  if(token){
   show('familyPanel');
   show('familyActions');
   $('inviteToken').value=token;
  }
+
  await loadFamilies();
 }
 
@@ -764,33 +931,40 @@ $('loginBtn').onclick=async()=>{
  if(error)toast(error.message);
 };
 
-$('logoutBtn').onclick=async()=>{
+async function logout(){
  await client.auth.signOut();
  location.reload();
-};
+}
+$('logoutBtn').onclick=logout;
+$('logoutSettingsBtn').onclick=logout;
 
 $('createFamilyBtn').onclick=createFamily;
 $('joinFamilyBtn').onclick=joinFamily;
 $('makeInviteBtn').onclick=makeInvite;
 $('renameFamilyBtn').onclick=renameFamily;
 $('deleteFamilyBtn').onclick=deleteFamily;
+$('leaveFamilyBtn').onclick=leaveFamily;
+$('saveDisplayNameBtn').onclick=saveDisplayName;
+
+$('openSettingsBtn').onclick=openSettings;
+$('backToShoppingBtn').onclick=backToShopping;
 
 $('familySelect').onchange=()=>{
  const selected=families.find(f=>f.id===$('familySelect').value);
  if(selected)selectFamily(selected);
 };
 
+$('settingsFamilySelect').onchange=()=>{
+ const selected=families.find(f=>f.id===$('settingsFamilySelect').value);
+ if(selected)selectFamily(selected);
+};
+
 $('showFamiliesBtn').onclick=()=>{
+ show('settingsPanel',false);
+ show('shoppingArea',false);
  show('familyPanel');
  show('familyActions');
- $('familyChoices').replaceChildren();
- families.forEach(f=>{
-  const b=document.createElement('button');
-  b.className='secondary';
-  b.textContent='🏠 '+f.name+(f.role==='owner'?' · مالك':'');
-  b.onclick=()=>selectFamily(f);
-  $('familyChoices').append(b);
- });
+ showFamilyChoices();
 };
 
 $('shareInviteBtn').onclick=()=>{
