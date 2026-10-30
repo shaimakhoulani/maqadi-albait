@@ -2,12 +2,11 @@
 <html lang="ar" dir="rtl">
 <head>
  <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#55745b">
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#f5f7f2">
-<title>مقاضي البيت</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+ <meta name="theme-color" content="#f5f7f2">
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width,initial-scale=1">
+ <title>مقاضي البيت</title>
+ <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
  --bg:#f5f7f2;--card:#fff;--ink:#26352f;--muted:#68766e;
@@ -67,20 +66,16 @@ hr{border:0;border-top:1px solid var(--line);margin:20px 0}
 .top-actions{display:flex;gap:8px;align-items:center}
 .top-actions>*{flex:1}
 .settings-button{
- width:40px;
- height:40px;
- min-width:40px;
- flex:0 0 40px;
- padding:0;
- border:1px solid var(--line);
- border-radius:10px;
- background:white;
- color:var(--green);
- font-size:19px;
- display:grid;
- place-items:center;
+ width:40px;height:40px;min-width:40px;flex:0 0 40px;
+ padding:0;border:1px solid var(--line);border-radius:10px;
+ background:white;color:var(--green);font-size:19px;
+ display:grid;place-items:center;
 }
 .section-label{font-weight:bold;margin:12px 0 4px}
+.invitation-panel{text-align:center;padding:24px 18px}
+.invitation-icon{font-size:42px;margin-bottom:8px}
+.invitation-message{font-size:16px;line-height:1.9;margin:12px 0}
+.invitation-status{margin:8px 0;color:var(--muted)}
 @media(max-width:480px){
  .app{padding:14px 10px}
  .panel{padding:13px}
@@ -100,6 +95,22 @@ hr{border:0;border-top:1px solid var(--line);margin:20px 0}
  </div>
  <div class="status" id="status">جارٍ الاتصال…</div>
 </header>
+
+<!-- صفحة الدعوة -->
+<section class="panel invitation-panel hidden" id="invitationPanel">
+ <div class="invitation-icon">🌿</div>
+ <h2>تمت دعوتك!</h2>
+ <p id="invitationMessage" class="invitation-message">
+  جارٍ تحميل تفاصيل الدعوة…
+ </p>
+ <p id="invitationStatus" class="invitation-status small"></p>
+ <button class="primary" id="acceptInvitationBtn" disabled>
+  قبول الدعوة
+ </button>
+ <button class="danger" id="rejectInvitationBtn">
+  رفض الدعوة
+ </button>
+</section>
 
 <section class="panel hidden" id="loginPanel">
  <h2>أهلاً بك في مقاضي البيت</h2>
@@ -269,8 +280,118 @@ function status(message){$('status').textContent=message}
 function show(id,yes=true){$(id).classList.toggle('hidden',!yes)}
 function isOwner(){return !!family&&family.role==='owner'}
 
+function getInvitationToken(){
+ return new URLSearchParams(location.search).get('invite');
+}
+
+async function loadInvitation(){
+ const token=getInvitationToken();
+ if(!token)return false;
+
+ show('invitationPanel');
+ show('loginPanel',false);
+ show('profilePanel',false);
+ show('familyPanel',false);
+ show('familyToolbar',false);
+ show('settingsPanel',false);
+ show('shoppingArea',false);
+
+ $('invitationMessage').textContent='جارٍ تحميل تفاصيل الدعوة…';
+ $('invitationStatus').textContent='';
+ $('acceptInvitationBtn').disabled=true;
+
+ const {data,error}=await client.rpc('get_family_invitation',{
+  invite_token:token
+ });
+
+ if(error){
+  $('invitationMessage').textContent='تعذّر تحميل الدعوة. يرجى المحاولة لاحقاً.';
+  $('invitationStatus').textContent=error.message;
+  return true;
+ }
+
+ const invitation=Array.isArray(data)?data[0]:data;
+
+ if(!invitation){
+  $('invitationMessage').textContent='رابط الدعوة غير صحيح أو لم يعد موجوداً.';
+  $('invitationStatus').textContent='';
+  return true;
+ }
+
+ $('invitationMessage').textContent=
+  'تمت دعوتك للانضمام إلى عائلة «'+invitation.family_name+
+  '» في تطبيق مقاضي البيت.';
+
+ if(invitation.invitation_accepted_at){
+  $('invitationStatus').textContent='تم استخدام هذه الدعوة مسبقاً.';
+  return true;
+ }
+
+ if(invitation.invitation_expires_at &&
+    new Date(invitation.invitation_expires_at)<=new Date()){
+  $('invitationStatus').textContent='انتهت صلاحية هذه الدعوة.';
+  return true;
+ }
+
+ $('acceptInvitationBtn').disabled=false;
+ return true;
+}
+
+async function acceptInvitation(){
+ const token=getInvitationToken();
+ if(!token)return;
+
+ if(!user){
+  const {error}=await client.auth.signInWithOAuth({
+   provider:'google',
+   options:{
+    redirectTo:location.origin+location.pathname+location.search
+   }
+  });
+  if(error)toast(error.message);
+  return;
+ }
+
+ const profileOK=await checkMemberProfile();
+ if(!profileOK)return;
+
+ $('acceptInvitationBtn').disabled=true;
+
+ const {data,error}=await client.rpc('accept_family_invitation',{
+  invite_token:token
+ });
+
+ $('acceptInvitationBtn').disabled=false;
+
+ if(error){
+  toast(error.message);
+  return;
+ }
+
+ const familyId=typeof data==='string'?data:
+  (data?.family_id||data?.[0]?.family_id||null);
+
+ history.replaceState({},'',location.pathname);
+ show('invitationPanel',false);
+ toast('تم الانضمام إلى العائلة');
+ await loadFamilies(familyId);
+}
+
+function rejectInvitation(){
+ history.replaceState({},'',location.pathname);
+ show('invitationPanel',false);
+
+ if(user){
+  loadFamilies();
+ }else{
+  show('loginPanel');
+  status('يمكنك تسجيل الدخول للبدء');
+ }
+}
+
 function showOnlyProfile(){
  show('loginPanel',false);
+ show('invitationPanel',false);
  show('profilePanel',true);
  show('familyPanel',false);
  show('familyToolbar',false);
@@ -324,6 +445,12 @@ async function saveDisplayName(){
  $('displayNameInput').value='';
  show('profilePanel',false);
  toast('تم حفظ اسمك بنجاح');
+
+ if(getInvitationToken()){
+  await loadInvitation();
+  return;
+ }
+
  await loadFamilies();
 }
 
@@ -906,7 +1033,7 @@ async function renameFamily(){
  const {error}=await client.rpc('rename_family',{
   target_family_id:family.id,new_family_name:name
  });
- if(error){toast('تعذّر تغيير الاسم: '+error.message);return}
+ if(error){toast('تعذّر تغيير اسم العائلة: '+error.message);return}
 
  family.name=name;
  const f=families.find(x=>x.id===family.id);
@@ -961,6 +1088,30 @@ async function leaveFamily(){
 
 async function handleAuth(session){
  user=session?.user||null;
+
+ const token=getInvitationToken();
+
+ if(token){
+  await loadInvitation();
+
+  if(!user){
+   show('loginPanel',false);
+   status('راجعي الدعوة ثم اختاري قبولها أو رفضها');
+   return;
+  }
+
+  status('تم تسجيل الدخول');
+
+  const profileOK=await checkMemberProfile();
+
+  if(!profileOK){
+   show('invitationPanel',false);
+   return;
+  }
+
+  return;
+ }
+
  show('loginPanel',!user);
 
  if(!user){
@@ -980,13 +1131,6 @@ async function handleAuth(session){
  const profileOK=await checkMemberProfile();
  if(!profileOK)return;
 
- const token=new URLSearchParams(location.search).get('invite');
- if(token){
-  show('familyPanel');
-  show('familyActions');
-  $('inviteToken').value=token;
- }
-
  await loadFamilies();
 }
 
@@ -997,6 +1141,9 @@ $('loginBtn').onclick=async()=>{
  });
  if(error)toast(error.message);
 };
+
+$('acceptInvitationBtn').onclick=acceptInvitation;
+$('rejectInvitationBtn').onclick=rejectInvitation;
 
 async function logout(){
  await client.auth.signOut();
@@ -1082,12 +1229,10 @@ window.addEventListener('offline',()=>{
  try{await openDB()}
  catch(e){console.warn('IndexedDB unavailable',e)}
 
- // تسجيل مستمع تغيّر حالة الدخول أولاً
  client.auth.onAuthStateChange((_event,session)=>{
   setTimeout(()=>handleAuth(session),0);
  });
 
- // استعادة الجلسة المحفوظة
  const {data,error}=await client.auth.getSession();
 
  if(error){
@@ -1097,7 +1242,11 @@ window.addEventListener('offline',()=>{
  if(data?.session){
   await handleAuth(data.session);
  }else{
-  // محاولة الدخول تلقائياً بحساب Google المحفوظ
+  if(getInvitationToken()){
+   await handleAuth(null);
+   return;
+  }
+
   status('جارٍ استعادة تسجيل الدخول…');
 
   const {error:loginError}=await client.auth.signInWithOAuth({
@@ -1116,13 +1265,14 @@ window.addEventListener('offline',()=>{
 })();
 })();
 </script>
+
 <script>
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(reg => console.log('Service Worker registered'))
-      .catch(err => console.error('Service Worker error:', err));
-  });
+ window.addEventListener('load', () => {
+  navigator.serviceWorker.register('/sw.js')
+   .then(reg => console.log('Service Worker registered'))
+   .catch(err => console.error('Service Worker error:', err));
+ });
 }
 </script>
 </body>
