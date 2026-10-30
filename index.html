@@ -1294,6 +1294,29 @@ window.addEventListener('offline',()=>{
 });
 
 (async()=>{
+
+ // انتظر حتى تختفي شاشة الترحيب تماماً
+ await new Promise(resolve => {
+   const splash = document.getElementById('splashScreen');
+
+   if (!splash) {
+     resolve();
+     return;
+   }
+
+   const observer = new MutationObserver(() => {
+     if (!document.getElementById('splashScreen')) {
+       observer.disconnect();
+       resolve();
+     }
+   });
+
+   observer.observe(document.body, {
+     childList: true,
+     subtree: true
+   });
+ });
+
  try{await openDB()}
  catch(e){console.warn('IndexedDB unavailable',e)}
 
