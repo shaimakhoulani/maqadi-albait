@@ -136,11 +136,20 @@ hr{border:0;border-top:1px solid var(--line);margin:20px 0}
   <img src="./splash.png" alt="مقاضي البيت">
 </div>
 <script>
-if (localStorage.getItem('maqadiSplashShown') === '1') {
-  document.getElementById('splashScreen')?.remove();
-} else {
-  localStorage.setItem('maqadiSplashShown', '1');
-}
+(function () {
+  const splash = document.getElementById('splashScreen');
+
+  if (!splash) return;
+
+  const shown = sessionStorage.getItem('maqadiSplashShown');
+
+  if (shown === '1') {
+    splash.remove();
+    return;
+  }
+
+  sessionStorage.setItem('maqadiSplashShown', '1');
+})();
 </script>
 <main class="app">
 <header>
