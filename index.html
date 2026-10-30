@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#f5f7f2"><title>مقاضي البيت</title>
+<meta name="theme-color" content="#f5f7f2"><meta name="description" content="قائمة مقاضي العائلة، مرتبة وسهلة للجميع."><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="مقاضي البيت"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="manifest" href="/manifest.json"><link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png"><link rel="apple-touch-icon" href="/icon-192.png"><title>مقاضي البيت</title>
 <style>
 :root{--bg:#f5f7f2;--card:#fff;--ink:#26352f;--muted:#68766e;--line:#e3e9e1;--green:#376b55;--soft:#e7f0e9}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.65 Tahoma,"Segoe UI",Arial,sans-serif}.app{max-width:720px;margin:auto;padding:22px 15px}
@@ -55,5 +55,6 @@ document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;re
 async function connect(){if(!navigator.onLine)return;if(!window.supabase){await new Promise((resolve,reject)=>{const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';sc.onload=resolve;sc.onerror=reject;document.head.append(sc)}).catch(()=>{});}if(!window.supabase){status('⚠️ تعذّر تحميل مكتبة المزامنة؛ ستبقى القائمة محفوظة محليًا.');return}if(!client)client=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);await syncQueue();await load();if(!channel)channel=client.channel('grocery-items-live').on('postgres_changes',{event:'*',schema:'public',table:'grocery_items'},()=>load()).subscribe(()=>{});await updateStatus()}
 async function init(){try{await openLocalDB();const cached=await idbGet('cache','items');if(cached){items=cached;ready=true;render();status('● القائمة المحفوظة على هذا الجهاز')}}catch(e){status('⚠️ تعذّر تفعيل التخزين المحلي في هذا المتصفح.')}window.addEventListener('online',connect);window.addEventListener('offline',updateStatus);if(navigator.onLine)await connect();else await updateStatus()}
 init();setInterval(()=>{if(ready&&tab==='bought')render()},60000);
+if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(err => console.warn('Service worker registration failed:', err))); }
 })();
 </script></body></html>
