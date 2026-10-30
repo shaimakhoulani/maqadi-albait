@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
+ <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#55745b">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#f5f7f2">
@@ -1113,6 +1115,15 @@ window.addEventListener('offline',()=>{
  }
 })();
 })();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('Service Worker registered'))
+      .catch(err => console.error('Service Worker error:', err));
+  });
+}
 </script>
 </body>
 </html>
