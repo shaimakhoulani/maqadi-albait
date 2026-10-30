@@ -135,11 +135,11 @@ hr{border:0;border-top:1px solid var(--line);margin:20px 0}
  <div id="splashScreen">
   <img src="./splash.png" alt="مقاضي البيت">
 </div>
- <script>
-if (sessionStorage.getItem('maqadiSplashShown') === '1') {
+<script>
+if (localStorage.getItem('maqadiSplashShown') === '1') {
   document.getElementById('splashScreen')?.remove();
 } else {
-  sessionStorage.setItem('maqadiSplashShown', '1');
+  localStorage.setItem('maqadiSplashShown', '1');
 }
 </script>
 <main class="app">
