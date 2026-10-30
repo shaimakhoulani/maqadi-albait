@@ -288,7 +288,8 @@ async function loadInvitation(){
  const token=getInvitationToken();
  if(!token)return false;
 
- show('invitationPanel');
+show('invitationPanel');
+console.log('INVITATION PANEL DISPLAYED', getInvitationToken());
  show('loginPanel',false);
  show('profilePanel',false);
  show('familyPanel',false);
