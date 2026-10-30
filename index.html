@@ -27,6 +27,7 @@ h2{font-size:20px;margin:0 0 12px}
 input,select,button{font:inherit}
 input,select{width:100%;min-height:49px;border:1.5px solid #d8e1d8;border-radius:11px;padding:9px 12px;background:white;color:var(--ink);margin:4px 0}
 button{cursor:pointer}
+button:disabled{opacity:.55;cursor:wait}
 .primary{width:100%;min-height:48px;border:0;border-radius:11px;background:var(--green);color:white;font-weight:bold;margin-top:8px;padding:8px 12px}
 .secondary{width:100%;min-height:45px;border:1px solid var(--line);border-radius:11px;background:#edf2ed;color:var(--ink);margin-top:8px;padding:8px}
 .danger{width:100%;min-height:45px;border:1px solid #e7caca;border-radius:11px;background:#fff0f0;color:#a12e2e;margin-top:8px;padding:8px;font-weight:bold}
@@ -36,23 +37,31 @@ button{cursor:pointer}
 .count{display:inline-grid;place-items:center;min-width:22px;height:22px;border-radius:20px;background:#e8ede7;padding:0 5px;font-size:12px}
 .listhead{display:flex;justify-content:space-between;align-items:center;margin:18px 2px 10px}
 .items{display:grid;gap:8px}
-.item{display:flex;align-items:center;gap:9px;background:white;border:1px solid var(--line);border-radius:14px;padding:10px;min-height:64px}
+.item{display:flex;align-items:center;gap:9px;background:white;border:1px solid var(--line);border-radius:14px;padding:10px;min-height:64px;touch-action:pan-y;transition:background .15s,transform .15s}
 .item.done{background:#eaf2eb}
+.item.dragging{background:#e3f0e6}
 .name{flex:1;min-width:0;font-weight:bold;overflow-wrap:anywhere}
 .done .name{text-decoration:line-through;color:#63776a}
 .meta{display:block;font-size:12px;color:var(--muted);font-weight:normal}
-.check{width:42px;height:42px;border-radius:11px;border:1px solid #cdd8ce;background:white;color:var(--green);font-size:20px}
+.check{width:42px;height:42px;border-radius:11px;border:1px solid #cdd8ce;background:white;color:var(--green);font-size:20px;flex-shrink:0}
 .done .check{background:var(--green);color:white}
 .icon{border:0;background:transparent;color:#758078;width:34px;height:38px;font-size:21px}
 .empty{border:1px dashed #cbd7cb;border-radius:14px;padding:24px;text-align:center;color:var(--muted)}
 .note{text-align:center;font-size:13px;margin:18px 5px}
-.toast{display:none;position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#26352f;color:white;padding:10px 16px;border-radius:12px;max-width:90vw;z-index:5}
+.toast{display:none;position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#26352f;color:white;padding:10px 16px;border-radius:12px;max-width:90vw;z-index:10;text-align:center}
 .toast.show{display:block}
 .hidden{display:none!important}
 .row{display:flex;gap:8px;align-items:center}
 .row>*{flex:1;min-width:0}
 .small{font-size:13px;color:var(--muted)}
 hr{border:0;border-top:1px solid var(--line);margin:20px 0}
+.member{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--line)}
+.member:last-child{border-bottom:0}
+.member-info{flex:1;min-width:0;overflow-wrap:anywhere}
+.member-role{font-size:12px;color:var(--muted)}
+.remove-member{border:1px solid #e7caca;background:#fff0f0;color:#a12e2e;border-radius:9px;padding:6px 10px}
+.family-current{font-weight:bold;color:var(--green);margin-bottom:8px}
+.swipe-hint{font-size:12px;color:var(--muted);text-align:center;margin:8px 0}
 @media(max-width:480px){
  .app{padding:14px 10px}
  .panel{padding:13px}
@@ -82,14 +91,21 @@ hr{border:0;border-top:1px solid var(--line);margin:20px 0}
 <section class="panel hidden" id="familyPanel">
  <h2>العائلة</h2>
  <div id="familyChoices"></div>
- <div id="familyActions" class="hidden">
+ <div id="familyActions">
   <p class="small">يمكنك إنشاء عائلة جديدة أو الانضمام إلى عائلة عبر رابط دعوة.</p>
-  <input id="newFamilyName" placeholder="اسم العائلة">
+  <input id="newFamilyName" maxlength="100" placeholder="اسم العائلة">
   <button class="primary" id="createFamilyBtn">＋ إنشاء عائلة</button>
-  <input id="inviteToken" placeholder="رمز الدعوة">
+  <input id="inviteToken" placeholder="رمز الدعوة أو رابط الدعوة">
   <button class="secondary" id="joinFamilyBtn">الانضمام إلى عائلة</button>
  </div>
  <button class="secondary" id="logoutBtn">تسجيل الخروج</button>
+</section>
+
+<section class="panel hidden" id="familyToolbar">
+ <div class="family-current" id="currentFamilyName"></div>
+ <label class="small" for="familySelect">التبديل بين العائلات</label>
+ <select id="familySelect"></select>
+ <button class="secondary" id="showFamiliesBtn">إدارة العائلات / إنشاء عائلة</button>
 </section>
 
 <section class="panel hidden" id="invitePanel">
@@ -101,9 +117,13 @@ hr{border:0;border-top:1px solid var(--line);margin:20px 0}
  <button class="secondary" id="shareInviteBtn">مشاركة الرابط عبر واتساب</button>
 
  <hr>
+ <h2>أعضاء العائلة</h2>
+ <div id="membersList"><p class="small">جارٍ تحميل الأعضاء…</p></div>
+
+ <hr>
  <h2>إدارة العائلة</h2>
  <p class="small">هذه الخيارات متاحة لمالك العائلة فقط.</p>
- <input id="renameFamilyName" placeholder="الاسم الجديد للعائلة">
+ <input id="renameFamilyName" maxlength="100" placeholder="الاسم الجديد للعائلة">
  <button class="secondary" id="renameFamilyBtn">تغيير اسم العائلة</button>
  <button class="danger" id="deleteFamilyBtn">حذف العائلة نهائياً</button>
 </section>
@@ -117,7 +137,7 @@ hr{border:0;border-top:1px solid var(--line);margin:20px 0}
     <option value="urgent">🔴 مستعجل</option>
     <option value="later" selected>🟡 يمكن تأجيله</option>
    </select>
-   <button class="primary">＋ إضافة إلى القائمة</button>
+   <button class="primary" id="addButton">＋ إضافة إلى القائمة</button>
   </form>
  </section>
 
@@ -132,7 +152,7 @@ hr{border:0;border-top:1px solid var(--line);margin:20px 0}
   <span class="small" id="listSubtitle"></span>
  </div>
  <div class="items" id="items" aria-live="polite"></div>
- <p class="note">اضغطي ✓ لنقل الغرض إلى «تم شراؤه».</p>
+ <p class="swipe-hint">اضغطي ✓ أو اسحبي الغرض إلى اليسار لنقله إلى «تم شراؤه».</p>
 </div>
 </main>
 
@@ -140,6 +160,8 @@ hr{border:0;border-top:1px solid var(--line);margin:20px 0}
 
 <script>
 (()=>{
+'use strict';
+
 const SUPABASE_URL='https://mkjgbiewvjzlcrckbdoe.supabase.co';
 const SUPABASE_KEY='sb_publishable_NxU-0Xhbb67hjD0XEcI2WA_FIx9f_bt';
 const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
@@ -152,20 +174,23 @@ const subtitles={
  bought:'الأغراض التي تم شراؤها'
 };
 
-let user=null,families=[],family=null,items=[],tab='urgent',channel=null;
-let cacheDB=null,queueBusy=false;
+let user=null,families=[],family=null,items=[],tab='urgent';
+let channel=null,cacheDB=null,queueBusy=false,toastTimer=null;
+let switching=false;
 
 function toast(message){
  $('toast').textContent=message;
  $('toast').classList.add('show');
- setTimeout(()=>$('toast').classList.remove('show'),3000);
+ clearTimeout(toastTimer);
+ toastTimer=setTimeout(()=>$('toast').classList.remove('show'),3500);
 }
 function status(message){$('status').textContent=message}
 function show(id,yes=true){$(id).classList.toggle('hidden',!yes)}
+function isOwner(){return !!family&&family.role==='owner'}
 
 function openDB(){
  return new Promise((resolve,reject)=>{
-  const req=indexedDB.open('maqadi-family-v2',1);
+  const req=indexedDB.open('maqadi-family-v3',1);
   req.onupgradeneeded=()=>{
    const db=req.result;
    if(!db.objectStoreNames.contains('cache'))db.createObjectStore('cache');
@@ -178,6 +203,7 @@ function openDB(){
 
 function dbRequest(storeName,mode,action){
  return new Promise((resolve,reject)=>{
+  if(!cacheDB)return reject(new Error('التخزين المحلي غير متاح'));
   const tx=cacheDB.transaction(storeName,mode);
   const req=action(tx.objectStore(storeName));
   req.onsuccess=()=>resolve(req.result);
@@ -209,57 +235,65 @@ function fromDB(r){
 
 async function loadItems(){
  if(!family)return;
+ const selectedFamilyId=family.id;
 
  const {data,error}=await client.from('grocery_items')
   .select('id,name,category,is_completed,created_at,completed_at')
-  .eq('family_id',family.id)
+  .eq('family_id',selectedFamilyId)
   .order('created_at',{ascending:false});
+
+ if(!family||family.id!==selectedFamilyId)return;
 
  if(error){
   const cached=await getCache();
   if(cached){items=cached;render()}
-  status('تعذّر تحميل القائمة: '+error.message);
+  status(navigator.onLine?'تعذّر تحميل القائمة':'دون اتصال · عرض النسخة المحفوظة');
   return;
  }
 
  items=(data||[]).map(fromDB);
  await saveCache();
  render();
- status('متصل · '+family.name);
+ status((navigator.onLine?'متصل':'دون اتصال')+' · '+family.name);
 }
 
 async function syncQueue(){
  if(queueBusy||!navigator.onLine||!user||!family)return;
  queueBusy=true;
+ const syncUser=user.id,syncFamily=family.id;
 
  try{
   const q=await dbRequest('queue','readonly',s=>s.getAll());
   q.sort((a,b)=>a.qid-b.qid);
 
   for(const op of q){
-   if(op.user_id!==user.id||op.family_id!==family.id)continue;
+   if(op.user_id!==syncUser||op.family_id!==syncFamily)continue;
+   if(!user||user.id!==syncUser||!family||family.id!==syncFamily)break;
 
    let result;
    if(op.type==='insert'){
-    result=await client.from('grocery_items').insert(op.row);
-   }
-   if(op.type==='update'){
+    result=await client.from('grocery_items')
+     .upsert(op.row,{onConflict:'id',ignoreDuplicates:true});
+   }else if(op.type==='update'){
     result=await client.from('grocery_items')
      .update({is_completed:op.done})
-     .eq('id',op.id).eq('family_id',family.id);
-   }
-   if(op.type==='delete'){
+     .eq('id',op.id).eq('family_id',syncFamily);
+   }else if(op.type==='delete'){
     result=await client.from('grocery_items')
-     .delete().eq('id',op.id).eq('family_id',family.id);
+     .delete().eq('id',op.id).eq('family_id',syncFamily);
+   }else{
+    await dbRequest('queue','readwrite',s=>s.delete(op.qid));
+    continue;
    }
 
    if(result?.error){
     console.error(result.error);
     break;
    }
-
    await dbRequest('queue','readwrite',s=>s.delete(op.qid));
   }
+ }catch(error){
+  console.error(error);
  }finally{
   queueBusy=false;
  }
@@ -273,11 +307,9 @@ async function refresh(){
 async function addItem(name,cat){
  const id=crypto.randomUUID();
  const row={id,name,category:cat,family_id:family.id};
+ const selectedFamilyId=family.id;
 
- items.unshift({
-  id,name,cat,done:false,
-  created:new Date().toISOString(),at:null
- });
+ items.unshift({id,name,cat,done:false,created:new Date().toISOString(),at:null});
  render();
  await saveCache();
 
@@ -291,12 +323,14 @@ async function addItem(name,cat){
  if(error){
   await queueOp({type:'insert',row});
   toast('حُفظ محلياً، وستتم إعادة المحاولة');
- }else{
+ }else if(family?.id===selectedFamilyId){
   await loadItems();
  }
 }
 
 async function setDone(item,done){
+ if(!family)return;
+ const previousDone=item.done,previousAt=item.at;
  item.done=done;
  item.at=done?new Date().toISOString():null;
  render();
@@ -304,6 +338,7 @@ async function setDone(item,done){
 
  if(!navigator.onLine){
   await queueOp({type:'update',id:item.id,done});
+  toast('حُفظ التغيير وسيُزامن عند عودة الإنترنت');
   return;
  }
 
@@ -320,17 +355,20 @@ async function setDone(item,done){
 }
 
 async function deleteItem(item){
+ if(!family)return;
+ const selectedFamilyId=family.id;
  items=items.filter(x=>x.id!==item.id);
  render();
  await saveCache();
 
  if(!navigator.onLine){
   await queueOp({type:'delete',id:item.id});
+  toast('حُفظ الحذف وسيُزامن عند عودة الإنترنت');
   return;
  }
 
  const {error}=await client.from('grocery_items')
-  .delete().eq('id',item.id).eq('family_id',family.id);
+  .delete().eq('id',item.id).eq('family_id',selectedFamilyId);
 
  if(error){
   await queueOp({type:'delete',id:item.id});
@@ -342,7 +380,6 @@ function render(){
  $('cu').textContent=items.filter(x=>!x.done&&x.cat==='urgent').length;
  $('cl').textContent=items.filter(x=>!x.done&&x.cat==='later').length;
  $('cb').textContent=items.filter(x=>x.done).length;
-
  $('listTitle').textContent=titles[tab];
  $('listSubtitle').textContent=subtitles[tab];
 
@@ -354,11 +391,9 @@ function render(){
   tab==='bought'?x.done:!x.done&&x.cat===tab
  );
 
- list.sort((a,b)=>
-  tab==='bought'
-   ?Date.parse(b.at||0)-Date.parse(a.at||0)
-   :Date.parse(b.created||0)-Date.parse(a.created||0)
- );
+ list.sort((a,b)=>tab==='bought'
+  ?Date.parse(b.at||0)-Date.parse(a.at||0)
+  :Date.parse(b.created||0)-Date.parse(a.created||0));
 
  const host=$('items');
  host.replaceChildren();
@@ -366,9 +401,7 @@ function render(){
  if(!list.length){
   const e=document.createElement('div');
   e.className='empty';
-  e.textContent=tab==='bought'
-   ?'لم تشتروا شيئاً بعد'
-   :'القائمة فارغة حالياً';
+  e.textContent=tab==='bought'?'لم تشتروا شيئاً بعد':'القائمة فارغة حالياً';
   host.append(e);
   return;
  }
@@ -376,10 +409,12 @@ function render(){
  list.forEach(item=>{
   const row=document.createElement('article');
   row.className='item'+(item.done?' done':'');
+  row.dataset.itemId=item.id;
 
   const check=document.createElement('button');
   check.className='check';
   check.textContent=item.done?'✓':'○';
+  check.setAttribute('aria-label',item.done?'إلغاء الشراء':'تم الشراء');
   check.onclick=()=>setDone(item,!item.done);
 
   const name=document.createElement('div');
@@ -388,25 +423,48 @@ function render(){
 
   const meta=document.createElement('span');
   meta.className='meta';
-  meta.textContent=item.done
-   ?'تم الشراء'
-   :item.cat==='urgent'?'مستعجل':'يمكن تأجيله';
+  meta.textContent=item.done?'تم الشراء':item.cat==='urgent'?'مستعجل':'يمكن تأجيله';
   name.append(meta);
 
   const del=document.createElement('button');
   del.className='icon';
   del.textContent='×';
   del.title='حذف';
+  del.setAttribute('aria-label','حذف الغرض');
   del.onclick=()=>{
    if(confirm('هل تريدين حذف هذا الغرض؟'))deleteItem(item);
   };
 
   row.append(check,name,del);
+  addSwipe(row,item);
   host.append(row);
  });
 }
 
-async function loadFamilies(){
+/* السحب لليسار على الشاشة لنقل الغرض إلى تم شراؤه */
+function addSwipe(element,item){
+ let startX=0,startY=0,tracking=false;
+ element.addEventListener('touchstart',e=>{
+  if(e.touches.length!==1)return;
+  startX=e.touches[0].clientX;
+  startY=e.touches[0].clientY;
+  tracking=true;
+ },{passive:true});
+
+ element.addEventListener('touchend',e=>{
+  if(!tracking)return;
+  tracking=false;
+  const touch=e.changedTouches[0];
+  const dx=touch.clientX-startX;
+  const dy=touch.clientY-startY;
+  if(Math.abs(dx)>65&&Math.abs(dx)>Math.abs(dy)*1.3){
+   if(dx<0&&!item.done)setDone(item,true);
+   else if(dx>0&&item.done)setDone(item,false);
+  }
+ },{passive:true});
+}
+
+async function loadFamilies(preferredId=null){
  const {data,error}=await client.from('family_members')
   .select('family_id,role,families(id,name,created_by)')
   .eq('user_id',user.id);
@@ -418,225 +476,290 @@ async function loadFamilies(){
 
  families=(data||[])
   .map(x=>({...x.families,role:x.role}))
-  .filter(x=>x.id);
-
- show('familyPanel');
- show('shoppingArea',false);
- show('invitePanel',false);
- $('familyChoices').replaceChildren();
+  .filter(x=>x&&x.id);
 
  if(!families.length){
   family=null;
+  show('familyPanel');
   show('familyActions');
+  show('familyToolbar',false);
+  show('shoppingArea',false);
+  show('invitePanel',false);
   $('familyChoices').textContent='ليس لديك عائلة بعد.';
   return;
  }
 
- show('familyActions',false);
+ const chosen=families.find(f=>f.id===preferredId)
+  ||families.find(f=>f.id===family?.id)
+  ||(families.length===1?families[0]:null);
 
- families.forEach(f=>{
-  const b=document.createElement('button');
-  b.className='secondary';
-  b.textContent='🏠 '+f.name+(f.role==='owner'?' · مالك':'');
-  b.onclick=()=>selectFamily(f);
-  $('familyChoices').append(b);
- });
-
- if(families.length===1){
-  await selectFamily(families[0]);
+ if(chosen){
+  await selectFamily(chosen);
+ }else{
+  family=null;
+  show('familyPanel');
+  show('familyActions',false);
+  show('familyToolbar',false);
+  show('shoppingArea',false);
+  show('invitePanel',false);
+  $('familyChoices').replaceChildren();
+  families.forEach(f=>{
+   const b=document.createElement('button');
+   b.className='secondary';
+   b.textContent='🏠 '+f.name+(f.role==='owner'?' · مالك':'');
+   b.onclick=()=>selectFamily(f);
+   $('familyChoices').append(b);
+  });
  }
 }
 
 async function selectFamily(f){
- family=f;
- tab='urgent';
+ if(switching)return;
+ switching=true;
+ try{
+  if(channel){
+   await client.removeChannel(channel);
+   channel=null;
+  }
 
- show('familyPanel',false);
- show('shoppingArea');
- show('invitePanel',f.role==='owner');
+  family=f;
+  tab='urgent';
+  items=[];
 
- if(channel){
-  await client.removeChannel(channel);
-  channel=null;
+  show('familyPanel',false);
+  show('familyToolbar');
+  show('shoppingArea');
+  show('invitePanel',true);
+
+  $('currentFamilyName').textContent='🏠 '+family.name+
+   (isOwner()?' · مالك العائلة':' · عضو');
+
+  const select=$('familySelect');
+  select.replaceChildren();
+  families.forEach(x=>{
+   const option=document.createElement('option');
+   option.value=x.id;
+   option.textContent=x.name+(x.role==='owner'?' · مالك':'');
+   option.selected=x.id===family.id;
+   select.append(option);
+  });
+
+  show('renameFamilyName',isOwner());
+  show('renameFamilyBtn',isOwner());
+  show('deleteFamilyBtn',isOwner());
+  show('inviteEmail',isOwner());
+  show('makeInviteBtn',isOwner());
+  show('shareInviteBtn',isOwner());
+
+  $('inviteLink').value='';
+  await loadItems();
+  await loadMembers();
+
+  channel=client.channel('groceries-'+f.id)
+   .on('postgres_changes',{
+    event:'*',schema:'public',table:'grocery_items',
+    filter:'family_id=eq.'+f.id
+   },()=>loadItems())
+   .subscribe();
+
+  await syncQueue();
+ }finally{
+  switching=false;
  }
-
- await loadItems();
-
- channel=client.channel('groceries-'+f.id)
-  .on('postgres_changes',{
-   event:'*',
-   schema:'public',
-   table:'grocery_items',
-   filter:'family_id=eq.'+f.id
-  },()=>loadItems())
-  .subscribe();
 }
 
 async function createFamily(){
  const name=$('newFamilyName').value.trim();
- if(!name){
-  toast('اكتبي اسم العائلة أولاً');
-  return;
- }
+ if(!name){toast('اكتبي اسم العائلة أولاً');return}
 
- const {data,error}=await client.rpc('create_family',{
-  family_name:name
- });
+ const {data,error}=await client.rpc('create_family',{family_name:name});
+ if(error){toast(error.message);return}
 
- if(error){
-  toast(error.message);
-  return;
- }
-
+ $('newFamilyName').value='';
  toast('تم إنشاء العائلة');
- await loadFamilies();
+ await loadFamilies(typeof data==='string'?data:null);
+}
 
- const f=families.find(x=>x.id===data);
- if(f)await selectFamily(f);
+function extractToken(value){
+ const text=String(value||'').trim();
+ if(!text)return '';
+ try{
+  const url=new URL(text);
+  return url.searchParams.get('invite')||text;
+ }catch{
+  return text;
+ }
 }
 
 async function joinFamily(){
- const token=$('inviteToken').value.trim();
- if(!token){
-  toast('أدخلي رمز الدعوة');
-  return;
- }
+ const token=extractToken($('inviteToken').value);
+ if(!token){toast('أدخلي رمز الدعوة أو رابطها');return}
 
  const {data,error}=await client.rpc('accept_family_invitation',{
   invite_token:token
  });
+ if(error){toast(error.message);return}
 
- if(error){
-  toast(error.message);
-  return;
- }
+ $('inviteToken').value='';
+ const familyId=typeof data==='string'?data:
+  (data?.family_id||data?.[0]?.family_id||null);
 
+ history.replaceState({},'',location.pathname);
  toast('تم الانضمام إلى العائلة');
- await loadFamilies();
-
- const f=families.find(x=>x.id===data);
- if(f)await selectFamily(f);
+ await loadFamilies(familyId);
 }
 
 async function makeInvite(){
- if(!family)return;
-
+ if(!family||!isOwner())return;
  const email=$('inviteEmail').value.trim()||null;
+
  const {data,error}=await client.rpc('create_family_invitation',{
-  target_family_id:family.id,
-  target_email:email
+  target_family_id:family.id,target_email:email
  });
+ if(error){toast(error.message);return}
 
- if(error){
-  toast(error.message);
-  return;
- }
+ const token=typeof data==='string'?data:
+  (data?.[0]?.token||data?.[0]?.invitation_token||data?.token||data?.invitation_token);
 
- const token=data?.[0]?.invitation_token;
- if(!token){
-  toast('لم يتم إنشاء الدعوة');
-  return;
- }
+ if(!token){toast('تم تنفيذ الطلب لكن تعذّر قراءة رمز الدعوة.');return}
 
- const link=location.origin+location.pathname+'?invite='+token;
+ const link=location.origin+location.pathname+'?invite='+encodeURIComponent(token);
  $('inviteLink').value=link;
  toast('تم إنشاء رابط الدعوة');
 }
 
-async function renameFamily(){
- if(!family||family.role!=='owner')return;
+async function loadMembers(){
+ if(!family)return;
+ const selectedId=family.id;
+ $('membersList').innerHTML='<p class="small">جارٍ تحميل الأعضاء…</p>';
 
- const name=$('renameFamilyName').value.trim();
- if(!name){
-  toast('اكتبي الاسم الجديد أولاً');
-  return;
- }
-
- const {error}=await client.rpc('rename_family',{
-  target_family_id:family.id,
-  new_family_name:name
+ const {data,error}=await client.rpc('get_family_members',{
+  target_family_id:selectedId
  });
 
  if(error){
-  toast('تعذّر تغيير الاسم: '+error.message);
+  $('membersList').textContent='تعذّر تحميل الأعضاء: '+error.message;
   return;
  }
+ if(!family||family.id!==selectedId)return;
+
+ const host=$('membersList');
+ host.replaceChildren();
+
+ (data||[]).forEach(member=>{
+  const row=document.createElement('div');
+  row.className='member';
+
+  const info=document.createElement('div');
+  info.className='member-info';
+
+  const email=document.createElement('div');
+  email.textContent=member.email||'عضو في العائلة';
+
+  const role=document.createElement('div');
+  role.className='member-role';
+  role.textContent=member.role==='owner'?'مالك العائلة':'عضو';
+
+  info.append(email,role);
+  row.append(info);
+
+  if(isOwner()&&member.role!=='owner'){
+   const remove=document.createElement('button');
+   remove.className='remove-member';
+   remove.textContent='إزالة';
+   remove.onclick=()=>removeMember(member);
+   row.append(remove);
+  }
+  host.append(row);
+ });
+
+ if(!data||!data.length){
+  host.textContent='لا يوجد أعضاء لعرضهم.';
+ }
+}
+
+async function removeMember(member){
+ if(!isOwner()||!family)return;
+ const confirmed=confirm('هل تريدين إزالة هذا العضو من العائلة؟');
+ if(!confirmed)return;
+
+ const {error}=await client.rpc('remove_family_member',{
+  target_family_id:family.id,
+  target_user_id:member.user_id
+ });
+ if(error){toast('تعذّرت إزالة العضو: '+error.message);return}
+
+ toast('تمت إزالة العضو');
+ await loadMembers();
+}
+
+async function renameFamily(){
+ if(!family||!isOwner())return;
+ const name=$('renameFamilyName').value.trim();
+ if(!name){toast('اكتبي الاسم الجديد أولاً');return}
+
+ const {error}=await client.rpc('rename_family',{
+  target_family_id:family.id,new_family_name:name
+ });
+ if(error){toast('تعذّر تغيير الاسم: '+error.message);return}
 
  family.name=name;
  const f=families.find(x=>x.id===family.id);
  if(f)f.name=name;
-
+ $('currentFamilyName').textContent='🏠 '+name+' · مالك العائلة';
  $('renameFamilyName').value='';
- status('متصل · '+family.name);
+ const option=$('familySelect').selectedOptions[0];
+ if(option)option.textContent=name+' · مالك';
  toast('تم تغيير اسم العائلة');
 }
 
 async function deleteFamily(){
- if(!family||family.role!=='owner')return;
-
+ if(!family||!isOwner())return;
  const confirmed=confirm(
   'هل أنت متأكدة من حذف عائلة "'+family.name+
-  '" نهائياً؟ سيتم حذف قائمة المشتريات والأعضاء والدعوات أيضاً. لا يمكن التراجع عن هذا الإجراء.'
+  '" نهائياً؟ سيتم حذف قائمة المقاضي والأعضاء والدعوات أيضاً. لا يمكن التراجع.'
  );
-
  if(!confirmed)return;
 
  const id=family.id;
+ const {error}=await client.rpc('delete_family',{target_family_id:id});
+ if(error){toast('تعذّر حذف العائلة: '+error.message);return}
 
- const {error}=await client.rpc('delete_family',{
-  target_family_id:id
- });
-
- if(error){
-  toast('تعذّر حذف العائلة: '+error.message);
-  return;
- }
-
- if(channel){
-  await client.removeChannel(channel);
-  channel=null;
- }
-
- family=null;
- items=[];
-
+ if(channel){await client.removeChannel(channel);channel=null}
+ family=null;items=[];
  toast('تم حذف العائلة');
  await loadFamilies();
 }
 
 async function handleAuth(session){
  user=session?.user||null;
-
  show('loginPanel',!user);
- show('familyPanel',!!user);
 
  if(!user){
+  if(channel){await client.removeChannel(channel);channel=null}
+  family=null;families=[];items=[];
+  show('familyPanel',false);
+  show('familyToolbar',false);
   show('shoppingArea',false);
   show('invitePanel',false);
-  family=null;
-  families=[];
-  items=[];
   status('سجّلي الدخول للبدء');
   return;
  }
 
  status('تم تسجيل الدخول');
- await loadFamilies();
-
  const token=new URLSearchParams(location.search).get('invite');
  if(token){
   show('familyPanel');
   show('familyActions');
   $('inviteToken').value=token;
  }
+ await loadFamilies();
 }
 
 $('loginBtn').onclick=async()=>{
  const {error}=await client.auth.signInWithOAuth({
   provider:'google',
-  options:{
-   redirectTo:location.origin+location.pathname+location.search
-  }
+  options:{redirectTo:location.origin+location.pathname+location.search}
  });
  if(error)toast(error.message);
 };
@@ -652,13 +775,27 @@ $('makeInviteBtn').onclick=makeInvite;
 $('renameFamilyBtn').onclick=renameFamily;
 $('deleteFamilyBtn').onclick=deleteFamily;
 
+$('familySelect').onchange=()=>{
+ const selected=families.find(f=>f.id===$('familySelect').value);
+ if(selected)selectFamily(selected);
+};
+
+$('showFamiliesBtn').onclick=()=>{
+ show('familyPanel');
+ show('familyActions');
+ $('familyChoices').replaceChildren();
+ families.forEach(f=>{
+  const b=document.createElement('button');
+  b.className='secondary';
+  b.textContent='🏠 '+f.name+(f.role==='owner'?' · مالك':'');
+  b.onclick=()=>selectFamily(f);
+  $('familyChoices').append(b);
+ });
+};
+
 $('shareInviteBtn').onclick=()=>{
  const link=$('inviteLink').value;
- if(!link){
-  toast('أنشئي رابط الدعوة أولاً');
-  return;
- }
-
+ if(!link){toast('أنشئي رابط الدعوة أولاً');return}
  window.open(
   'https://wa.me/?text='+encodeURIComponent('انضمي إلى عائلتنا في مقاضي البيت: '+link),
   '_blank'
@@ -667,21 +804,25 @@ $('shareInviteBtn').onclick=()=>{
 
 $('addForm').onsubmit=async e=>{
  e.preventDefault();
-
  const name=$('itemName').value.trim();
  if(!name||!family)return;
 
- await addItem(name,$('category').value);
- $('itemName').value='';
- tab=$('category').value;
- render();
+ $('addButton').disabled=true;
+ try{
+  await addItem(name,$('category').value);
+  $('itemName').value='';
+  tab=$('category').value;
+  render();
+ }catch(error){
+  console.error(error);
+  toast('تعذّرت إضافة الغرض. حاولي مرة أخرى.');
+ }finally{
+  $('addButton').disabled=false;
+ }
 };
 
 document.querySelectorAll('.tab').forEach(b=>{
- b.onclick=()=>{
-  tab=b.dataset.tab;
-  render();
- };
+ b.onclick=()=>{tab=b.dataset.tab;render()};
 });
 
 window.addEventListener('online',async()=>{
@@ -696,11 +837,8 @@ window.addEventListener('offline',()=>{
 });
 
 (async()=>{
- try{
-  await openDB();
- }catch(e){
-  console.warn(e);
- }
+ try{await openDB()}
+ catch(e){console.warn('IndexedDB unavailable',e)}
 
  const {data:{session}}=await client.auth.getSession();
  await handleAuth(session);
