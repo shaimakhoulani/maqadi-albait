@@ -1,60 +1,348 @@
+
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#f5f7f2"><meta name="description" content="قائمة مقاضي العائلة، مرتبة وسهلة للجميع."><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="مقاضي البيت"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="manifest" href="/manifest.json"><link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png"><link rel="apple-touch-icon" href="/icon-192.png"><title>مقاضي البيت</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f5f7f2">
+<title>مقاضي البيت</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--bg:#f5f7f2;--card:#fff;--ink:#26352f;--muted:#68766e;--line:#e3e9e1;--green:#376b55;--soft:#e7f0e9}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.65 Tahoma,"Segoe UI",Arial,sans-serif}.app{max-width:720px;margin:auto;padding:22px 15px}
-header{padding:10px 2px 20px}.brand{display:flex;align-items:center;gap:12px}.logo{width:52px;height:52px;border-radius:16px;background:var(--soft);display:grid;place-items:center;font-size:27px}h1{font-size:32px;margin:0;line-height:1.3}h2{font-size:20px;margin:0 0 12px}.subtitle,.hint,.status,.note{color:var(--muted)}.subtitle{margin:4px 0;font-size:15px}.status{font-size:13px;margin-top:12px}
-.panel{background:var(--card);border:1px solid var(--line);border-radius:19px;padding:17px;margin-bottom:15px;box-shadow:0 7px 25px #233a2c0d}
-.formrow{display:grid;grid-template-columns:1fr 155px;gap:9px}input,select,button{font:inherit}input,select{min-height:51px;border:1.5px solid #d8e1d8;border-radius:12px;padding:10px 13px;background:#fff;color:var(--ink);width:100%}input:focus,select:focus{outline:3px solid #376b5522;border-color:var(--green)}.primary{margin-top:10px;min-height:50px;width:100%;border:0;border-radius:12px;background:var(--green);color:#fff;font-weight:bold}.hint{font-size:13px;margin:9px 2px 0}
-.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:20px 0 14px}.tab{border:1px solid var(--line);background:transparent;border-radius:13px;min-height:54px;padding:8px 3px;color:var(--muted);font-weight:bold}.tab[aria-selected=true]{background:var(--green);color:#fff;border-color:var(--green)}.count{display:inline-grid;place-items:center;min-width:23px;height:23px;border-radius:20px;padding:0 5px;background:#e8ede7;color:var(--ink);font-size:13px}.tab[aria-selected=true] .count{background:#ffffff35;color:white}
-.listhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:20px 2px 12px}.listhead small{font-size:13px;color:var(--muted)}.items{display:grid;gap:9px}.item{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:15px;padding:11px;min-height:68px;touch-action:pan-y;transition:transform .15s}.item.done{background:#eaf2eb}.name{flex:1;min-width:0;font-weight:bold;overflow-wrap:anywhere}.done .name{text-decoration:line-through;color:#63776a}.meta{display:block;font-size:12px;color:var(--muted);font-weight:normal}.check{width:43px;height:43px;flex:0 0 43px;border-radius:12px;border:1.5px solid #cdd8ce;background:#fff;color:var(--green);font-size:21px}.done .check{background:var(--green);color:#fff}.icon{border:0;background:transparent;color:#758078;width:35px;height:38px;font-size:21px;border-radius:9px}.empty{border:1px dashed #cbd7cb;border-radius:15px;padding:26px 14px;text-align:center;color:var(--muted)}.empty strong{display:block;color:var(--ink)}.note{text-align:center;font-size:13px;margin:20px 8px}.toast{display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#26352f;color:white;padding:10px 16px;border-radius:12px;max-width:90vw;font-size:14px}.toast.show{display:block}dialog{border:1px solid var(--line);border-radius:17px;max-width:420px;width:calc(100% - 30px);padding:22px;color:var(--ink)}dialog::backdrop{background:#18231c66}.actions{display:flex;gap:10px;margin-top:15px}.actions button{flex:1;min-height:48px;border:0;border-radius:11px}.cancel{background:#edf0eb}.confirm{background:var(--green);color:#fff}
-@media(max-width:480px){body{font-size:16px}.app{padding:16px 11px}.panel{padding:14px}.formrow{grid-template-columns:1fr}.tabs{gap:4px}.tab{font-size:13px}.listhead small{max-width:45%;text-align:left}.item{gap:8px;padding:9px}.check{width:40px;height:40px;flex-basis:40px}}
-</style><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 Tahoma,"Segoe UI",Arial,sans-serif}
+.app{max-width:720px;margin:auto;padding:20px 14px}
+header{padding:10px 2px 18px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:52px;height:52px;border-radius:16px;background:var(--soft);display:grid;place-items:center;font-size:27px}
+h1{font-size:30px;margin:0}h2{font-size:20px;margin:0 0 12px}
+.subtitle,.hint,.status,.note{color:var(--muted)}
+.subtitle{margin:0;font-size:14px}.status{font-size:13px;margin-top:10px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:0 5px 20px #233a2c0b}
+input,select,button{font:inherit}
+input,select{width:100%;min-height:49px;border:1.5px solid #d8e1d8;border-radius:11px;padding:9px 12px;background:white;color:var(--ink);margin:4px 0}
+button{cursor:pointer}
+.primary{width:100%;min-height:48px;border:0;border-radius:11px;background:var(--green);color:white;font-weight:bold;margin-top:8px;padding:8px 12px}
+.secondary{width:100%;min-height:45px;border:1px solid var(--line);border-radius:11px;background:#edf2ed;color:var(--ink);margin-top:8px;padding:8px}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:16px 0}
+.tab{border:1px solid var(--line);background:transparent;border-radius:12px;min-height:52px;color:var(--muted);font-weight:bold}
+.tab[aria-selected=true]{background:var(--green);color:white}
+.count{display:inline-grid;place-items:center;min-width:22px;height:22px;border-radius:20px;background:#e8ede7;padding:0 5px;font-size:12px}
+.listhead{display:flex;justify-content:space-between;align-items:center;margin:18px 2px 10px}
+.items{display:grid;gap:8px}
+.item{display:flex;align-items:center;gap:9px;background:white;border:1px solid var(--line);border-radius:14px;padding:10px;min-height:64px}
+.item.done{background:#eaf2eb}
+.name{flex:1;min-width:0;font-weight:bold;overflow-wrap:anywhere}
+.done .name{text-decoration:line-through;color:#63776a}
+.meta{display:block;font-size:12px;color:var(--muted);font-weight:normal}
+.check{width:42px;height:42px;border-radius:11px;border:1px solid #cdd8ce;background:white;color:var(--green);font-size:20px}
+.done .check{background:var(--green);color:white}
+.icon{border:0;background:transparent;color:#758078;width:34px;height:38px;font-size:21px}
+.empty{border:1px dashed #cbd7cb;border-radius:14px;padding:24px;text-align:center;color:var(--muted)}
+.note{text-align:center;font-size:13px;margin:18px 5px}
+.toast{display:none;position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#26352f;color:white;padding:10px 16px;border-radius:12px;max-width:90vw;z-index:5}
+.toast.show{display:block}
+.hidden{display:none!important}
+.row{display:flex;gap:8px;align-items:center}
+.row>*{flex:1;min-width:0}
+.small{font-size:13px;color:var(--muted)}
+@media(max-width:480px){.app{padding:14px 10px}.panel{padding:13px}.tab{font-size:13px}}
+</style>
 </head>
-<body><main class="app">
-<header><div class="brand"><div class="logo">🧺</div><div><h1>مقاضي البيت</h1><p class="subtitle">قائمة العائلة، مرتّبة وسهلة للجميع</p></div></div><div class="status" id="connectionStatus">● جارٍ تجهيز الاتصال…</div><div class="hint" id="offlineHint">ستُحفظ القائمة على هذا الجهاز بعد أول اتصال.</div></header>
-<section class="panel"><h2>إضافة غرض جديد</h2><form id="form"><div class="formrow"><input id="name" maxlength="200" placeholder="مثلاً: حليب، خبز، أرز…" required aria-label="اسم الغرض"><select id="category" aria-label="أهمية الغرض"><option value="urgent">🔴 مستعجل</option><option value="later" selected>🟡 يمكن تأجيله</option></select></div><button class="primary">＋ إضافة إلى القائمة</button></form><p class="hint">أضيفي الغرض وحددي مدى استعجاله.</p></section>
-<nav class="tabs"><button class="tab" data-tab="urgent" aria-selected="true">🔴 مستعجل <span class="count" id="cu">0</span></button><button class="tab" data-tab="later" aria-selected="false">🟡 يمكن تأجيله <span class="count" id="cl">0</span></button><button class="tab" data-tab="bought" aria-selected="false">🟢 تم شراؤه <span class="count" id="cb">0</span></button></nav>
-<section aria-live="polite"><div class="listhead"><h2 id="title">مستعجل</h2><small id="subtitle">الأغراض ذات الأولوية</small></div><div class="items" id="items"></div></section><p class="note">اسحبي الغرض إلى اليمين أو اضغطي علامة ✓ لنقله إلى «تم شراؤه».</p>
-</main><div class="toast" id="toast" role="status"></div>
-<dialog id="dlg"><h2>حذف الغرض؟</h2><p>هل تريد حذف هذا الغرض من القائمة؟</p><div class="actions"><button class="cancel" id="cancel">إلغاء</button><button class="confirm" id="confirm">حذف الغرض</button></div></dialog>
+<body>
+<main class="app">
+<header>
+ <div class="brand"><div class="logo">🧺</div><div><h1>مقاضي البيت</h1><p class="subtitle">قائمة العائلة، مرتّبة وسهلة للجميع</p></div></div>
+ <div class="status" id="status">جارٍ الاتصال…</div>
+</header>
+
+<section class="panel" id="loginPanel">
+ <h2>أهلاً بك في مقاضي البيت</h2>
+ <p class="small">سجّلي الدخول بحساب Google للبدء أو للانضمام إلى عائلتك.</p>
+ <button class="primary" id="loginBtn">الدخول باستخدام Google</button>
+</section>
+
+<section class="panel hidden" id="familyPanel">
+ <h2>العائلة</h2>
+ <div id="familyChoices"></div>
+ <div id="familyActions" class="hidden">
+  <p class="small">يمكنك إنشاء عائلة جديدة أو الانضمام إلى عائلة عبر رابط دعوة.</p>
+  <input id="newFamilyName" placeholder="اسم العائلة">
+  <button class="primary" id="createFamilyBtn">＋ إنشاء عائلة</button>
+  <input id="inviteToken" placeholder="رمز الدعوة">
+  <button class="secondary" id="joinFamilyBtn">الانضمام إلى عائلة</button>
+ </div>
+ <button class="secondary" id="logoutBtn">تسجيل الخروج</button>
+</section>
+
+<section class="panel hidden" id="invitePanel">
+ <h2>دعوة أفراد العائلة</h2>
+ <p class="small">أنشئي رابطاً خاصاً وشاركيه عبر واتساب. الرابط صالح لمدة 7 أيام.</p>
+ <input id="inviteEmail" type="email" placeholder="البريد الإلكتروني (اختياري)">
+ <button class="primary" id="makeInviteBtn">إنشاء رابط الدعوة</button>
+ <input id="inviteLink" readonly placeholder="سيظهر رابط الدعوة هنا">
+ <button class="secondary" id="shareInviteBtn">مشاركة الرابط عبر واتساب</button>
+</section>
+
+<div id="shoppingArea" class="hidden">
+ <section class="panel">
+  <h2>إضافة غرض جديد</h2>
+  <form id="addForm">
+   <input id="itemName" maxlength="200" placeholder="مثلاً: حليب، خبز، أرز…" required>
+   <select id="category">
+    <option value="urgent">🔴 مستعجل</option>
+    <option value="later" selected>🟡 يمكن تأجيله</option>
+   </select>
+   <button class="primary">＋ إضافة إلى القائمة</button>
+  </form>
+ </section>
+ <nav class="tabs">
+  <button class="tab" data-tab="urgent" aria-selected="true">🔴 مستعجل <span class="count" id="cu">0</span></button>
+  <button class="tab" data-tab="later" aria-selected="false">🟡 يمكن تأجيله <span class="count" id="cl">0</span></button>
+  <button class="tab" data-tab="bought" aria-selected="false">🟢 تم شراؤه <span class="count" id="cb">0</span></button>
+ </nav>
+ <div class="listhead"><h2 id="listTitle">مستعجل</h2><span class="small" id="listSubtitle"></span></div>
+ <div class="items" id="items" aria-live="polite"></div>
+ <p class="note">اضغطي ✓ لنقل الغرض إلى «تم شراؤه».</p>
+</div>
+</main>
+<div class="toast" id="toast"></div>
+
 <script>
 (()=>{
-// ضعي بيانات مشروعك العامة هنا قبل نشر الملف. لا تستخدمي service_role أو secret key.
-const SUPABASE_URL = 'https://mkjgbiewvjzlcrckbdoe.supabase.co';
-const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_NxU-0Xhbb67hjD0XEcI2WA_FIx9f_bt';
-const titles={urgent:'مستعجل',later:'يمكن تأجيله',bought:'تم شراؤه'},subs={urgent:'الأغراض ذات الأولوية',later:'أغراض يمكن شراؤها لاحقًا',bought:'تُحذف تلقائيًا بعد 24 ساعة'};
-let tab='urgent',items=[],pending=null,tt,client=null,channel=null,ready=false,db=null,syncing=false;const $=x=>document.getElementById(x);
-function status(s){$('connectionStatus').textContent=s}
-function toast(s){$('toast').textContent=s;$('toast').classList.add('show');clearTimeout(tt);tt=setTimeout(()=>$('toast').classList.remove('show'),2500)}
-function fromDb(r){return {id:r.id,name:r.name,cat:r.category,done:!!r.is_completed,created:Date.parse(r.created_at)||Date.now(),at:r.completed_at?Date.parse(r.completed_at):null}}
-function openLocalDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open('family-groceries-offline-v1',1);req.onupgradeneeded=()=>{const d=req.result;d.createObjectStore('cache');d.createObjectStore('queue',{keyPath:'qid',autoIncrement:true})};req.onsuccess=()=>{db=req.result;resolve(db)};req.onerror=()=>reject(req.error)})}
-function store(name,mode='readonly'){return db.transaction(name,mode).objectStore(name)}
-function idbGet(name,key){return new Promise((res,rej)=>{const r=store(name).get(key);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
-function idbPut(name,key,value){return new Promise((res,rej)=>{const r=store(name,'readwrite').put(value,key);r.onsuccess=()=>res();r.onerror=()=>rej(r.error)})}
-function idbAddQueue(op){return new Promise((res,rej)=>{const r=store('queue','readwrite').add(op);r.onsuccess=()=>res();r.onerror=()=>rej(r.error)})}
-function idbAll(name){return new Promise((res,rej)=>{const r=store(name).getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error)})}
-function idbDelete(name,key){return new Promise((res,rej)=>{const r=store(name,'readwrite').delete(key);r.onsuccess=()=>res();r.onerror=()=>rej(r.error)})}
-async function saveCache(){if(db)await idbPut('cache','items',items)}
-async function queueCount(){return (await idbAll('queue')).length}
-async function updateStatus(){const n=await queueCount();if(!navigator.onLine)status('● دون اتصال — القائمة محفوظة على هذا الجهاز'+(n?' · تغييرات معلّقة: '+n:''));else if(n)status('● متصل — جارٍ مزامنة '+n+' تغييرات');else status('● متصل — المزامنة المباشرة مفعّلة')}
-async function load(){if(!navigator.onLine){await updateStatus();return}const {data,error}=await client.from('grocery_items').select('id,name,category,is_completed,created_at,completed_at').order('created_at',{ascending:false});if(error){await updateStatus();return}items=(data||[]).map(fromDb);ready=true;await saveCache();render();await updateStatus()}
-async function add(name,cat){const id=(crypto.randomUUID?crypto.randomUUID():'local-'+Date.now()+'-'+Math.random().toString(16).slice(2)),now=Date.now();const x={id,name,cat,done:false,created:now,at:null};items.unshift(x);render();await saveCache();await idbAddQueue({type:'insert',row:{id,name,category:cat}});if(navigator.onLine)await syncQueue();return true}
-async function setDone(x,done){x.done=done;x.at=done?Date.now():null;render();await saveCache();await idbAddQueue({type:'update',id:x.id,done});if(navigator.onLine)await syncQueue();return true}
-async function remove(id){items=items.filter(x=>x.id!==id);render();await saveCache();await idbAddQueue({type:'delete',id});if(navigator.onLine)await syncQueue();return true}
-async function syncQueue(){if(syncing||!navigator.onLine||!client||!db)return;syncing=true;try{let q=await idbAll('queue');q.sort((a,b)=>a.qid-b.qid);for(const op of q){let result;if(op.type==='insert')result=await client.from('grocery_items').insert(op.row);else if(op.type==='update')result=await client.from('grocery_items').update({is_completed:op.done}).eq('id',op.id);else result=await client.from('grocery_items').delete().eq('id',op.id);if(result.error){console.warn('Sync paused:',result.error.message);break}await idbDelete('queue',op.qid)}if((await queueCount())===0)await load()}finally{syncing=false;await updateStatus()}}
-async function toggle(id){let x=items.find(y=>y.id===id);if(!x)return;let done=!x.done;await setDone(x,done);toast(done?'تم نقله إلى «تم شراؤه».':'أُعيد الغرض إلى القائمة.')}
-function render(){ $('cu').textContent=items.filter(x=>!x.done&&x.cat==='urgent').length;$('cl').textContent=items.filter(x=>!x.done&&x.cat==='later').length;$('cb').textContent=items.filter(x=>x.done).length;$('title').textContent=titles[tab];$('subtitle').textContent=subs[tab];document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===tab)));let list=items.filter(x=>tab==='bought'?x.done:!x.done&&x.cat===tab);list.sort((a,b)=>tab==='bought'?(b.at||0)-(a.at||0):(b.created||0)-(a.created||0));let host=$('items');host.replaceChildren();if(!list.length){let e=document.createElement('div');e.className='empty';let s=document.createElement('strong');s.textContent=tab==='bought'?'لم تشتروا شيئًا بعد':'القائمة فارغة حاليًا';e.append(s,document.createTextNode(tab==='bought'?'عند شراء غرض، اسحبيه إلى اليمين أو اضغطي ✓.':'أضيفي أول غرض من الخانة أعلاه.'));host.append(e);return}
-for(let x of list){let row=document.createElement('article');row.className='item'+(x.done?' done':'');let check=document.createElement('button');check.className='check';check.textContent=x.done?'✓':'○';check.setAttribute('aria-label',x.done?'إعادة إلى القائمة':'تم شراء '+x.name);check.onclick=()=>toggle(x.id);let nm=document.createElement('div');nm.className='name';nm.textContent=x.name;let meta=document.createElement('span');meta.className='meta';meta.textContent=x.done?'تم الشراء · '+remaining(x.at):(x.cat==='urgent'?'مستعجل':'يمكن تأجيله');nm.append(meta);let btns=document.createElement('div');if(x.done){let undo=document.createElement('button');undo.className='icon';undo.textContent='↶';undo.title='إعادة إلى القائمة';undo.onclick=()=>toggle(x.id);btns.append(undo)}let del=document.createElement('button');del.className='icon';del.textContent='×';del.title='حذف';del.setAttribute('aria-label','حذف '+x.name);del.onclick=()=>{pending=x.id;$('dlg').showModal()};btns.append(del);row.append(check,nm,btns);let sx=0,sy=0,dx=0,tracking=false;row.addEventListener('touchstart',e=>{if(e.touches.length!==1)return;sx=e.touches[0].clientX;sy=e.touches[0].clientY;dx=0;tracking=true},{passive:true});row.addEventListener('touchmove',e=>{if(!tracking)return;dx=e.touches[0].clientX-sx;let dy=e.touches[0].clientY-sy;if(Math.abs(dy)>Math.abs(dx)*1.2){tracking=false;row.style.transform='';return}if(dx>0&&!x.done)row.style.transform='translateX('+Math.min(dx,85)+'px)'},{passive:true});row.addEventListener('touchend',()=>{if(!tracking)return;tracking=false;row.style.transform='';if(dx>65&&!x.done)toggle(x.id)});let down=false,mx=0;row.addEventListener('mousedown',e=>{if(e.target.closest('button'))return;down=true;mx=e.clientX});row.addEventListener('mouseup',e=>{if(down&&e.clientX-mx>75&&!x.done)toggle(x.id);down=false});row.addEventListener('mouseleave',()=>down=false);host.append(row)}}
-function remaining(t){if(!t)return 'جارٍ احتساب الوقت';let n=Math.max(0,86400000-(Date.now()-t)),h=Math.floor(n/3600000),m=Math.floor(n%3600000/60000);return 'يُحذف بعد '+h+' س و'+m+' د'}
-$('form').onsubmit=async e=>{e.preventDefault();let name=$('name').value.trim(),cat=$('category').value;if(!name)return;if(!db){toast('تعذّر فتح التخزين المحلي على هذا المتصفح.');return}if(await add(name,cat)){$('name').value='';tab=cat;render();$('name').focus();toast(navigator.onLine?'تمت إضافة الغرض.':'حُفظ الغرض على هذا الجهاز وسيُزامن عند عودة الإنترنت.')}};
-document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;render()});$('cancel').onclick=()=>{$('dlg').close();pending=null};$('confirm').onclick=async()=>{let id=pending;pending=null;$('dlg').close();if(await remove(id)){await load();toast('تم حذف الغرض.')}};
-async function connect(){if(!navigator.onLine)return;if(!window.supabase){await new Promise((resolve,reject)=>{const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';sc.onload=resolve;sc.onerror=reject;document.head.append(sc)}).catch(()=>{});}if(!window.supabase){status('⚠️ تعذّر تحميل مكتبة المزامنة؛ ستبقى القائمة محفوظة محليًا.');return}if(!client)client=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);await syncQueue();await load();if(!channel)channel=client.channel('grocery-items-live').on('postgres_changes',{event:'*',schema:'public',table:'grocery_items'},()=>load()).subscribe(()=>{});await updateStatus()}
-async function init(){try{await openLocalDB();const cached=await idbGet('cache','items');if(cached){items=cached;ready=true;render();status('● القائمة المحفوظة على هذا الجهاز')}}catch(e){status('⚠️ تعذّر تفعيل التخزين المحلي في هذا المتصفح.')}window.addEventListener('online',connect);window.addEventListener('offline',updateStatus);if(navigator.onLine)await connect();else await updateStatus()}
-init();setInterval(()=>{if(ready&&tab==='bought')render()},60000);
-if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(err => console.warn('Service worker registration failed:', err))); }
+const SUPABASE_URL='https://mkjgbiewvjzlcrckbdoe.supabase.co';
+const SUPABASE_KEY='sb_publishable_NxU-0Xhbb67hjD0XEcI2WA_FIx9f_bt';
+const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const $=id=>document.getElementById(id);
+const titles={urgent:'مستعجل',later:'يمكن تأجيله',bought:'تم شراؤه'};
+const subtitles={urgent:'الأغراض ذات الأولوية',later:'أغراض يمكن شراؤها لاحقاً',bought:'الأغراض التي تم شراؤها'};
+let user=null,families=[],family=null,items=[],tab='urgent',channel=null;
+let cacheDB=null,queueBusy=false;
+
+function toast(message){
+ $('toast').textContent=message;
+ $('toast').classList.add('show');
+ setTimeout(()=>$('toast').classList.remove('show'),3000);
+}
+function status(message){$('status').textContent=message}
+function show(id,yes=true){$(id).classList.toggle('hidden',!yes)}
+
+function openDB(){
+ return new Promise((resolve,reject)=>{
+  const req=indexedDB.open('maqadi-family-v2',1);
+  req.onupgradeneeded=()=>{
+   const db=req.result;
+   if(!db.objectStoreNames.contains('cache'))db.createObjectStore('cache');
+   if(!db.objectStoreNames.contains('queue'))db.createObjectStore('queue',{keyPath:'qid',autoIncrement:true});
+  };
+  req.onsuccess=()=>{cacheDB=req.result;resolve()};
+  req.onerror=()=>reject(req.error);
+ });
+}
+function dbRequest(storeName,mode,action){
+ return new Promise((resolve,reject)=>{
+  const tx=cacheDB.transaction(storeName,mode);
+  const req=action(tx.objectStore(storeName));
+  req.onsuccess=()=>resolve(req.result);
+  req.onerror=()=>reject(req.error);
+ });
+}
+const cacheKey=()=>user.id+':'+family.id;
+async function saveCache(){
+ if(cacheDB&&family)await dbRequest('cache','readwrite',s=>s.put(items,cacheKey()));
+}
+async function getCache(){
+ if(!cacheDB||!family)return null;
+ return await dbRequest('cache','readonly',s=>s.get(cacheKey()));
+}
+async function queueOp(op){
+ op.user_id=user.id;op.family_id=family.id;
+ await dbRequest('queue','readwrite',s=>s.add(op));
+}
+function fromDB(r){
+ return {id:r.id,name:r.name,cat:r.category,done:!!r.is_completed,created:r.created_at,at:r.completed_at};
+}
+async function loadItems(){
+ if(!family)return;
+ const {data,error}=await client.from('grocery_items')
+  .select('id,name,category,is_completed,created_at,completed_at')
+  .eq('family_id',family.id).order('created_at',{ascending:false});
+ if(error){
+  const cached=await getCache();
+  if(cached){items=cached;render()}
+  status('تعذّر تحميل القائمة: '+error.message);
+  return;
+ }
+ items=(data||[]).map(fromDB);
+ await saveCache();render();
+ status('متصل · '+family.name);
+}
+async function syncQueue(){
+ if(queueBusy||!navigator.onLine||!user||!family)return;
+ queueBusy=true;
+ try{
+  const q=await dbRequest('queue','readonly',s=>s.getAll());
+  q.sort((a,b)=>a.qid-b.qid);
+  for(const op of q){
+   if(op.user_id!==user.id||op.family_id!==family.id)continue;
+   let result;
+   if(op.type==='insert')result=await client.from('grocery_items').insert(op.row);
+   if(op.type==='update')result=await client.from('grocery_items').update({is_completed:op.done}).eq('id',op.id).eq('family_id',family.id);
+   if(op.type==='delete')result=await client.from('grocery_items').delete().eq('id',op.id).eq('family_id',family.id);
+   if(result?.error){console.error(result.error);break}
+   await dbRequest('queue','readwrite',s=>s.delete(op.qid));
+  }
+ }finally{queueBusy=false}
+}
+async function refresh(){
+ await syncQueue();
+ await loadItems();
+}
+async function addItem(name,cat){
+ const id=crypto.randomUUID();
+ const row={id,name,category:cat,family_id:family.id};
+ items.unshift({id,name,cat,done:false,created:new Date().toISOString(),at:null});
+ render();await saveCache();
+ if(!navigator.onLine){await queueOp({type:'insert',row});toast('حُفظ الغرض وسيُزامن عند عودة الإنترنت');return}
+ const {error}=await client.from('grocery_items').insert(row);
+ if(error){await queueOp({type:'insert',row});toast('حُفظ محلياً، وستتم إعادة المحاولة');}
+ else await loadItems();
+}
+async function setDone(item,done){
+ const old=item.done;item.done=done;item.at=done?new Date().toISOString():null;
+ render();await saveCache();
+ if(!navigator.onLine){await queueOp({type:'update',id:item.id,done});return}
+ const {error}=await client.from('grocery_items').update({is_completed:done}).eq('id',item.id).eq('family_id',family.id);
+ if(error){await queueOp({type:'update',id:item.id,done});toast('حُفظ التغيير وسيُزامن لاحقاً');}
+ else await loadItems();
+}
+async function deleteItem(item){
+ items=items.filter(x=>x.id!==item.id);render();await saveCache();
+ if(!navigator.onLine){await queueOp({type:'delete',id:item.id});return}
+ const {error}=await client.from('grocery_items').delete().eq('id',item.id).eq('family_id',family.id);
+ if(error){await queueOp({type:'delete',id:item.id});toast('حُفظ الحذف وسيُزامن لاحقاً');}
+}
+function render(){
+ $('cu').textContent=items.filter(x=>!x.done&&x.cat==='urgent').length;
+ $('cl').textContent=items.filter(x=>!x.done&&x.cat==='later').length;
+ $('cb').textContent=items.filter(x=>x.done).length;
+ $('listTitle').textContent=titles[tab];$('listSubtitle').textContent=subtitles[tab];
+ document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===tab)));
+ const list=items.filter(x=>tab==='bought'?x.done:!x.done&&x.cat===tab);
+ list.sort((a,b)=>tab==='bought'?Date.parse(b.at||0)-Date.parse(a.at||0):Date.parse(b.created||0)-Date.parse(a.created||0));
+ const host=$('items');host.replaceChildren();
+ if(!list.length){const e=document.createElement('div');e.className='empty';e.textContent=tab==='bought'?'لم تشتروا شيئاً بعد':'القائمة فارغة حالياً';host.append(e);return}
+ list.forEach(item=>{
+  const row=document.createElement('article');row.className='item'+(item.done?' done':'');
+  const check=document.createElement('button');check.className='check';check.textContent=item.done?'✓':'○';check.onclick=()=>setDone(item,!item.done);
+  const name=document.createElement('div');name.className='name';name.textContent=item.name;
+  const meta=document.createElement('span');meta.className='meta';meta.textContent=item.done?'تم الشراء':item.cat==='urgent'?'مستعجل':'يمكن تأجيله';name.append(meta);
+  const del=document.createElement('button');del.className='icon';del.textContent='×';del.title='حذف';del.onclick=()=>{if(confirm('هل تريدين حذف هذا الغرض؟'))deleteItem(item)};
+  row.append(check,name,del);host.append(row);
+ });
+}
+async function loadFamilies(){
+ const {data,error}=await client.from('family_members')
+  .select('family_id,role,families(id,name,created_by)')
+  .eq('user_id',user.id);
+ if(error){toast('تعذّر تحميل العائلات: '+error.message);return}
+ families=(data||[]).map(x=>({...x.families,role:x.role})).filter(x=>x.id);
+ show('familyPanel');show('shoppingArea',false);show('invitePanel',false);
+ $('familyChoices').replaceChildren();
+ if(!families.length){show('familyActions');$('familyChoices').textContent='ليس لديك عائلة بعد.';return}
+ show('familyActions',false);
+ families.forEach(f=>{
+  const b=document.createElement('button');b.className='secondary';
+  b.textContent='🏠 '+f.name+(f.role==='owner'?' · مالك':'');
+  b.onclick=()=>selectFamily(f);$('familyChoices').append(b);
+ });
+ if(families.length===1)selectFamily(families[0]);
+}
+async function selectFamily(f){
+ family=f;tab='urgent';
+ show('familyPanel',false);show('shoppingArea');show('invitePanel',f.role==='owner');
+ if(channel){await client.removeChannel(channel);channel=null}
+ await loadItems();
+ channel=client.channel('groceries-'+f.id)
+  .on('postgres_changes',{event:'*',schema:'public',table:'grocery_items',filter:'family_id=eq.'+f.id},()=>loadItems())
+  .subscribe();
+}
+async function createFamily(){
+ const name=$('newFamilyName').value.trim();
+ if(!name){toast('اكتبي اسم العائلة أولاً');return}
+ const {data,error}=await client.rpc('create_family',{family_name:name});
+ if(error){toast(error.message);return}
+ toast('تم إنشاء العائلة');
+ await loadFamilies();
+ const f=families.find(x=>x.id===data);
+ if(f)await selectFamily(f);
+}
+async function joinFamily(){
+ const token=$('inviteToken').value.trim();
+ if(!token){toast('أدخلي رمز الدعوة');return}
+ const {data,error}=await client.rpc('accept_family_invitation',{invite_token:token});
+ if(error){toast(error.message);return}
+ toast('تم الانضمام إلى العائلة');
+ await loadFamilies();
+ const f=families.find(x=>x.id===data);
+ if(f)await selectFamily(f);
+}
+async function makeInvite(){
+ if(!family)return;
+ const email=$('inviteEmail').value.trim()||null;
+ const {data,error}=await client.rpc('create_family_invitation',{
+  target_family_id:family.id,target_email:email
+ });
+ if(error){toast(error.message);return}
+ const token=data?.[0]?.invitation_token;
+ if(!token){toast('لم يتم إنشاء الدعوة');return}
+ const link=location.origin+location.pathname+'?invite='+token;
+ $('inviteLink').value=link;
+ toast('تم إنشاء رابط الدعوة');
+}
+async function handleAuth(session){
+ user=session?.user||null;
+ show('loginPanel',!user);show('familyPanel',!!user);
+ if(!user){
+  show('shoppingArea',false);show('invitePanel',false);family=null;items=[];
+  status('سجّلي الدخول للبدء');return;
+ }
+ status('تم تسجيل الدخول');
+ await loadFamilies();
+ const token=new URLSearchParams(location.search).get('invite');
+ if(token){show('familyPanel');show('familyActions');$('inviteToken').value=token;}
+}
+$('loginBtn').onclick=async()=>{
+ const {error}=await client.auth.signInWithOAuth({
+  provider:'google',options:{redirectTo:location.origin+location.pathname+location.search}
+ });
+ if(error)toast(error.message);
+};
+$('logoutBtn').onclick=async()=>{await client.auth.signOut();location.reload()};
+$('createFamilyBtn').onclick=createFamily;
+$('joinFamilyBtn').onclick=joinFamily;
+$('makeInviteBtn').onclick=makeInvite;
+$('shareInviteBtn').onclick=()=>{
+ const link=$('inviteLink').value;
+ if(!link){toast('أنشئي رابط الدعوة أولاً');return}
+ window.open('https://wa.me/?text='+encodeURIComponent('انضمي إلى عائلتنا في مقاضي البيت: '+link),'_blank');
+};
+$('addForm').onsubmit=async e=>{
+ e.preventDefault();
+ const name=$('itemName').value.trim();if(!name||!family)return;
+ await addItem(name,$('category').value);$('itemName').value='';
+ tab=$('category').value;render();
+};
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;render()});
+window.addEventListener('online',async()=>{if(user&&family){status('عاد الاتصال · جارٍ المزامنة');await refresh()}});
+window.addEventListener('offline',()=>status('دون اتصال · ستُحفظ التغييرات محلياً'));
+(async()=>{
+ try{await openDB()}catch(e){console.warn(e)}
+ const {data:{session}}=await client.auth.getSession();
+ await handleAuth(session);
+ client.auth.onAuthStateChange((_event,session)=>{setTimeout(()=>handleAuth(session),0)});
 })();
-</script></body></html>
+})();
+</script>
+</body>
+</html>
