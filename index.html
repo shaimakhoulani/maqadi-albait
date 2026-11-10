@@ -242,7 +242,11 @@ hr{border:0;border-top:1px solid var(--line);margin:20px 0}
 
  <div class="section-label">العائلة</div>
  <div class="family-current" id="settingsFamilyName"></div>
-
+<hr>
+<h2>إشعارات التطبيق</h2>
+<p class="small">فعّلي الإشعارات لتصلك تحديثات قائمة المقاضي.</p>
+<button class="primary" id="enableNotificationsBtn">تفعيل الإشعارات</button>
+<p class="small" id="notificationStatus"></p>
  <div id="familySwitchArea">
   <label class="small" for="settingsFamilySelect">التبديل بين العائلات</label>
   <select id="settingsFamilySelect"></select>
@@ -590,7 +594,76 @@ async function changeMyDisplayName(){
   $('changeMyNameBtn').disabled=false;
  }
 }
+function urlBase64ToUint8Array(base64String){
+ const padding='='.repeat((4-base64String.length%4)%4);
+ const base64=(base64String+padding)
+  .replace(/-/g,'+')
+  .replace(/_/g,'/');
+ const raw=atob(base64);
+ return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)));
+}
 
+async function enableNotifications(){
+ const btn=$('enableNotificationsBtn');
+ const statusEl=$('notificationStatus');
+
+ if(!user||!family){
+  toast('يجب تسجيل الدخول واختيار العائلة أولاً');
+  return;
+ }
+
+ if(!('serviceWorker' in navigator)||
+    !('PushManager' in window)||
+    !('Notification' in window)){
+  statusEl.textContent='هذا المتصفح لا يدعم الإشعارات.';
+  return;
+ }
+
+ btn.disabled=true;
+ statusEl.textContent='جارٍ تفعيل الإشعارات…';
+
+ try{
+  const permission=await Notification.requestPermission();
+
+  if(permission!=='granted'){
+   statusEl.textContent='لم تسمحي بالإشعارات.';
+   return;
+  }
+
+  const registration=await navigator.serviceWorker.ready;
+  let subscription=await registration.pushManager.getSubscription();
+
+  if(!subscription){
+   subscription=await registration.pushManager.subscribe({
+    userVisibleOnly:true,
+    applicationServerKey:urlBase64ToUint8Array(
+     'BAYFvYq94EgP_c_3u3lpJQcPiTYlME7gWmWYaahh7l8Al1M1jqO16P_POXAFkAkqh2aW4LCpkZgkvO8KLZAsuaw'
+    )
+   });
+  }
+
+  const {error}=await client
+   .from('push_subscriptions')
+   .upsert({
+    user_id:user.id,
+    family_id:family.id,
+    endpoint:subscription.endpoint,
+    subscription:subscription.toJSON(),
+    updated_at:new Date().toISOString()
+   },{onConflict:'endpoint'});
+
+  if(error)throw error;
+
+  statusEl.textContent='تم تفعيل الإشعارات على هذا الجهاز بنجاح.';
+  toast('تم تفعيل الإشعارات');
+
+ }catch(error){
+  console.error('Push notification error:',error);
+  statusEl.textContent='تعذّر التفعيل: '+error.message;
+ }finally{
+  btn.disabled=false;
+ }
+}
 function openDB(){
  return new Promise((resolve,reject)=>{
   const req=indexedDB.open('maqadi-family-v3',1);
@@ -1260,7 +1333,7 @@ $('changeMyNameBtn').onclick=changeMyDisplayName;
 
 $('openSettingsBtn').onclick=openSettings;
 $('backToShoppingBtn').onclick=backToShopping;
-
+$('enableNotificationsBtn').onclick=enableNotifications;
 $('familySelect').onchange=()=>{
  const selected=families.find(f=>f.id===$('familySelect').value);
  if(selected)selectFamily(selected);
