@@ -64,3 +64,48 @@ self.addEventListener('fetch', event => {
     })());
   }
 });
+// استقبال الإشعارات
+self.addEventListener('push', event => {
+  let data = {};
+
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch (error) {
+    data = { body: event.data?.text() || 'لديك تحديث جديد في مقاضي البيت' };
+  }
+
+  const title = data.title || 'مقاضي البيت';
+
+  const options = {
+    body: data.body || 'لديك تحديث جديد في قائمة العائلة',
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    data: {
+      url: data.url || '/'
+    }
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(title, options)
+  );
+});
+
+// عند الضغط على الإشعار
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+
+  const url = event.notification.data?.url || '/';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then(windowClients => {
+        for (const client of windowClients) {
+          if (client.url.startsWith(self.location.origin)) {
+            return client.focus();
+          }
+        }
+
+        return clients.openWindow(url);
+      })
+  );
+});
