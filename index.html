@@ -779,7 +779,30 @@ async function refresh(){
  await syncQueue();
  await loadItems();
 }
+async function notifyFamily(familyId,message){
+ try{
+  if(!navigator.onLine)return;
 
+  const registration=await navigator.serviceWorker.ready;
+  const subscription=await registration.pushManager.getSubscription();
+
+  const {data,error}=await client.functions.invoke('send-push',{
+   body:{
+    family_id:familyId,
+    title:'مقاضي البيت',
+    message,
+    url:'/',
+    exclude_endpoint:subscription?.endpoint||null
+   }
+  });
+
+  if(error)console.error('Notification error:',error);
+  else console.log('Notifications sent:',data);
+
+ }catch(error){
+  console.error('Notification error:',error);
+ }
+}
 async function addItem(name,cat){
  const id=crypto.randomUUID();
  const row={id,name,category:cat,family_id:family.id};
@@ -795,13 +818,14 @@ async function addItem(name,cat){
   return;
  }
 
- const {error}=await client.from('grocery_items').insert(row);
- if(error){
+const {error}=await client.from('grocery_items').insert(row);
+if(error){
   await queueOp({type:'insert',row});
   toast('حُفظ محلياً، وستتم إعادة المحاولة');
- }else if(family?.id===selectedFamilyId){
+}else if(family?.id===selectedFamilyId){
   await loadItems();
- }
+  await notifyFamily(selectedFamilyId,'تمت إضافة غرض جديد إلى قائمة المقاضي');
+}
 }
 
 async function setDone(item,done){
@@ -824,9 +848,15 @@ async function setDone(item,done){
  if(error){
   await queueOp({type:'update',id:item.id,done});
   toast('حُفظ التغيير وسيُزامن لاحقاً');
- }else{
+}else{
   await loadItems();
- }
+  await notifyFamily(
+    family.id,
+    done
+      ? 'تم شراء غرض من قائمة المقاضي'
+      : 'تمت إعادة غرض إلى قائمة المقاضي'
+  );
+}
 }
 
 async function deleteItem(item){
@@ -848,7 +878,12 @@ async function deleteItem(item){
  if(error){
   await queueOp({type:'delete',id:item.id});
   toast('حُفظ الحذف وسيُزامن لاحقاً');
- }
+}else{
+  await notifyFamily(
+    selectedFamilyId,
+    'تم حذف غرض من قائمة المقاضي'
+  );
+}
 }
 
 function render(){
